@@ -1,0 +1,57 @@
+---
+description: Non-negotiable rules for every change in the Woong repository
+alwaysApply: true
+---
+
+# Woong: always applies
+
+Read [`AGENTS.md`](../../AGENTS.md), then [`STATUS.md`](../../STATUS.md) and
+[`mvp/tasks.json`](../../mvp/tasks.json). Work the one open item. Do not start a
+later item.
+
+## Refuse to write, in any file, comment, test name, log line or screen
+
+1. **Advice.** No buy, sell, hold, target price, entry, exit, "top pick",
+   "recommended", "should buy". A ranked list is what a rule returns today.
+2. **A proxy number.** If a metric cannot be computed from a real source to its
+   real definition, it is catalogued as off with a stored reason, and the reason
+   is what the user sees. Never a close-enough substitute.
+3. **An upstream provider name.** Sources are only: `primary`, `broker`,
+   `exchange`, `fundamentals`, `manual`. Connection details are read from the
+   environment through `woong/config.py`.
+4. **Browser-side computation.** Python computes every number. The browser posts
+   a query and renders the response.
+5. **A merged filter and rank stage.** They stay separate.
+
+## Data honesty
+
+- Every fact column carries `source` and `as_of`.
+- A missing value never passes a filter and never counts as a failure. Report it
+  separately as "had no value".
+- Never author reference data. Download it or derive it.
+- Ranking by a value that is not comparable across companies is refused, with an
+  explanation.
+
+## Engineering
+
+- Fetching and computing live in separate modules.
+- Raise on failure. Never return an empty result on error.
+- Ingest is checkpointed and idempotent. A crash resumes.
+- Validate before writing, not after.
+- Every check must be able to fail the run.
+- Module docstrings state what the module refuses to do. Comments explain
+  constraints, never the obvious.
+
+## Git
+
+- Identity must be `deevanshuguru` and `deevanshu0@gmail.com`.
+- Issue, then branch, then pull request. Never commit to `main`.
+- `git add` names files. Never `git add -A`.
+- Co-author trailer on every commit.
+- Never commit `.env`, tokens, `data/` or logs.
+- Never attribute work to an assistant or tool.
+
+## Writing style
+
+Plain sentences. No marketing words. No em dashes. Give the full form alongside
+every abbreviation, every time, for example "Price to Earnings (P/E)".

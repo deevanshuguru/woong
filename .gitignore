@@ -9,6 +9,10 @@
 # store that was hand-edited.
 data/
 
+# The forbidden term list used by the repository guard test. Committing it
+# would itself put provider names in the repository.
+.forbidden-terms
+
 # Python
 __pycache__/
 *.py[cod]

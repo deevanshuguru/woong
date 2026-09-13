@@ -1,0 +1,61 @@
+{
+  "updated": "2026-09-13",
+  "this_page": "Builder work list. Not the product. An end user should never open this.",
+  "user_gets_today": "Nothing they can use. The warehouse is empty, so there is no stock list.",
+  "user_gets_when_ready": "A desktop screen. On the left they pick a universe, add conditions and choose a ranking. On the right they get the stocks that match, ranked, with the count that passed and the count that had no value. Plus a few named study blocks to start from. No advice, no forecast.",
+  "one_thing": "Rules in, stocks out: universe, filter, rank on real data, shown on one desktop screen.",
+  "why": "A short-term investor does not lack filters. They lack the next question worth asking, and every tool hands them knobs instead of an answer.",
+  "not_this_slice": [
+    "Natural language queries",
+    "Charts and performance history",
+    "Weighting interface",
+    "Backtesting",
+    "Broker deployment",
+    "Mobile layout",
+    "Dark mode",
+    "Visual polish",
+    "Login and accounts"
+  ],
+  "tasks": [
+    {
+      "id": "W0",
+      "issue": 1,
+      "status": "done",
+      "date": "2026-09-13",
+      "what": "Repository foundation: working agreement, locked decisions, product and architecture documentation, query specification, Cursor rules, skills, role agents, contribution guide, continuous integration.",
+      "why": "Sessions are paid. A repository that does not state its rules sends the next session down a path we already rejected."
+    },
+    {
+      "id": "W1",
+      "issue": 2,
+      "status": "doing",
+      "date": "2026-09-13",
+      "what": "Canonical warehouse schema and the metric catalogue, with reserved slots for weight, backtest and deploy.",
+      "why": "The scanner cannot exist before the data has a shape, and the shape has to serve the whole path or we rebuild it."
+    },
+    {
+      "id": "W2",
+      "issue": 3,
+      "status": "later",
+      "date": "",
+      "what": "Complete checkpointed harvest: every symbol and every index, resumable, idempotent.",
+      "why": "Analysis quality is capped by coverage. Fill it once properly, then keep it current cheaply."
+    },
+    {
+      "id": "W3",
+      "issue": 4,
+      "status": "later",
+      "date": "",
+      "what": "The query engine: universe, nested filter, rank and top N, with attribution for every removal.",
+      "why": "This is the product. A rule goes in, a ranked list of real stocks comes out."
+    },
+    {
+      "id": "W4",
+      "issue": 5,
+      "status": "later",
+      "date": "",
+      "what": "Desktop interface: operations on the left, results on the right, study blocks to start from.",
+      "why": "The engine is useless to an end user without a screen that does not bombard them."
+    }
+  ]
+}
