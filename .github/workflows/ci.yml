@@ -1,0 +1,39 @@
+# Continuous integration.
+#
+# Runs the test suite on every push to main and every pull request. The suite
+# includes the repository guard tests, so a rule violation fails the build
+# rather than waiting for a human to notice it in review.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.9 is what the developer machine runs, 3.12 is the target. Testing
+        # only the target would let code that cannot run locally reach main.
+        python-version: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        # The forbidden term list is supplied as configuration and is never
+        # committed, because committing it would itself put provider names in
+        # the repository. The guard test skips, loudly, when it is absent.
+        env:
+          WOONG_FORBIDDEN_TERMS: ${{ vars.WOONG_FORBIDDEN_TERMS }}
+        run: pytest -q

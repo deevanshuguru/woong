@@ -1,0 +1,15 @@
+# Project configuration. This is an application, not a published library, so
+# there is no build or packaging section here on purpose.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Tests are offline by design. Anything that needs a network is not a test.
+addopts = "-ra --strict-markers"
+
+[tool.ruff]
+line-length = 88
+# 3.9 is the floor because that is what the developer machine runs.
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
