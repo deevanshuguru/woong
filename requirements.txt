@@ -1,0 +1,20 @@
+# Runtime and development dependencies, pinned loosely on purpose: this is an
+# application repository, not a published library, so the lock point is the
+# virtual environment rather than this file.
+
+# Data store and frames. DuckDB is the local query engine, Parquet is the
+# on-disk format for the canonical warehouse.
+duckdb>=1.0
+pandas>=2.2
+pyarrow>=16.0
+
+# Ingest. Plain HTTP with explicit retry handling; no vendor client libraries.
+requests>=2.32
+python-dotenv>=1.0
+
+# Web layer. Python computes every number, the browser only presents.
+fastapi>=0.115
+uvicorn>=0.30
+
+# Tests
+pytest>=8.0

@@ -1,0 +1,31 @@
+# Secrets. Never commit these.
+.env
+.env.local
+*.token
+.*_token
+
+# The data store is rebuilt by the ingest pipeline and is never committed.
+# Raw payloads are large, and a committed store cannot be told apart from a
+# store that was hand-edited.
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Local databases and logs
+*.duckdb
+*.duckdb.wal
+*.log
+
+# Editor and operating system noise
+.DS_Store
+.idea/
+*.swp
