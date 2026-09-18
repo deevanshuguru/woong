@@ -468,7 +468,12 @@
         <div class="stat"><label>had no value</label><b>${data.had_no_value}</b></div>
         <div class="stat"><label>removed</label><b>${data.removed}</b></div>
         <div class="stat"><label>in universe</label><b>${data.universe_size}</b></div>`;
-      $("asof").textContent = "As of " + data.as_of + ". Every number is computed in Python.";
+      const noValue = data.had_no_value || 0;
+      const universe = data.universe_size || 0;
+      const skipped = noValue
+        ? " " + noValue.toLocaleString("en-IN") + " of " + universe.toLocaleString("en-IN") + " stocks skipped: no price history loaded yet."
+        : " All " + universe.toLocaleString("en-IN") + " stocks in the universe have values.";
+      $("asof").textContent = "Prices through " + data.as_of + "." + skipped;
       $("readback").textContent = data.read_back;
       $("disclaimer").textContent = data.disclaimer;
       const attribution = (data.attribution || []).filter((item) => item.removed || item.had_no_value);
