@@ -33,3 +33,8 @@ dist/
 .DS_Store
 .idea/
 *.swp
+
+*.bak
+debug_*.py
+patch_*.py
+repo_inventory.md
