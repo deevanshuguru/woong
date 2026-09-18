@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1100">
+<title>Baskets · Woong</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f6f7f9; --panel:#ffffff; --panel2:#f2f4f7; --ink:#1a1d23; --muted:#6b7280;
+  --line:#e5e8ec; --line2:#cdd3da; --accent:#2456d6; --accent-soft:#eef2fd;
+  --good:#0a7d33; --bad:#c23434; --warn-bg:#fff3cd; --warn-ink:#7a5b00; --warn-line:#ead28a;
+}
+html[data-theme="dark"] {
+  --bg:#0e1116; --panel:#161b22; --panel2:#1d242e; --ink:#e6e9ef; --muted:#8b93a1;
+  --line:#232a33; --line2:#39424e; --accent:#5b83ff; --accent-soft:#1c2536;
+  --good:#2ea45a; --bad:#e05252; --warn-bg:#332b12; --warn-ink:#e7c56a; --warn-line:#5a4a1a;
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink);
+  font:13.5px/1.5 Poppins,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; }
+a { color:inherit; text-decoration:none; }
+.num { font-variant-numeric:tabular-nums; }
+.up{color:var(--good)} .down{color:var(--bad)}
+
+/* ---- header ---- */
+.top { position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:14px;
+  padding:12px 24px; background:var(--panel); border-bottom:1px solid var(--line); }
+.brand { display:flex; align-items:baseline; gap:8px; }
+.brand h1 { margin:0; font-size:17px; font-weight:600; letter-spacing:-0.01em; }
+.badge { font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+  border:1px solid var(--line2); border-radius:4px; padding:1px 6px; }
+.promise { margin:0; color:var(--muted); font-size:13px; }
+.dummy { background:var(--warn-bg); color:var(--warn-ink); border:1px solid var(--warn-line);
+  border-radius:999px; padding:2px 10px; font-size:11.5px; margin-left:auto; white-space:nowrap; }
+.iconbtn { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px;
+  border:1px solid var(--line2); border-radius:8px; background:var(--panel); color:var(--muted); cursor:pointer; }
+.iconbtn:hover { border-color:var(--accent); color:var(--accent); }
+
+/* ---- layout ---- */
+.shell { display:grid; grid-template-columns:240px minmax(0,1fr); gap:20px; max-width:1200px; margin:0 auto; padding:20px 24px 48px; }
+.sidebar { position:sticky; top:64px; align-self:start; background:var(--panel);
+  border:1px solid var(--line); border-radius:var(--radius); padding:16px; max-height:calc(100vh - 90px); overflow:auto; }
+.side-h { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.side-h b { font-size:13px; font-weight:600; }
+.reset { background:none; border:0; padding:0; color:var(--accent); font-size:12px; cursor:pointer; }
+.fgroup { border-top:1px solid var(--line); padding:12px 0; }
+.fgroup:first-of-type { border-top:0; padding-top:2px; }
+.flabel { display:block; font-size:11px; font-weight:600; text-transform:uppercase;
+  letter-spacing:.07em; color:var(--muted); margin-bottom:8px; }
+.frow { display:flex; align-items:center; gap:8px; padding:4px 0; font-size:13px; cursor:pointer; }
+.frow input { accent-color:var(--accent); margin:0; }
+.frow .cnt { margin-left:auto; color:var(--muted); font-size:11.5px; }
+.fchips { display:flex; flex-wrap:wrap; gap:6px; }
+.chip { border:1px solid var(--line2); border-radius:999px; padding:3px 10px; font-size:12px;
+  cursor:pointer; background:var(--panel); color:var(--ink); }
+.chip.on { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:500; }
+
+/* ---- results head ---- */
+.rhead { display:flex; align-items:center; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+.rhead .title { font-size:15px; font-weight:600; margin:0 auto 0 0; }
+.rhead .sub { color:var(--muted); font-size:12px; }
+.rhead select { font:inherit; font-size:12.5px; color:var(--ink); background:var(--panel);
+  border:1px solid var(--line2); border-radius:8px; padding:6px 8px; }
+
+/* ---- cards ---- */
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media (max-width:1080px){ .grid{grid-template-columns:1fr;} }
+.card { position:relative; display:flex; flex-direction:column; gap:10px; background:var(--panel);
+  border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;
+  transition:border-color .12s ease, transform .12s ease; }
+.card:hover { border-color:var(--accent); }
+.card .go { position:absolute; right:16px; top:16px; color:var(--accent); font-size:12px; opacity:0; }
+.card:hover .go { opacity:1; }
+.crow { display:flex; align-items:center; gap:8px; }
+.name { font-size:15.5px; font-weight:600; letter-spacing:-0.01em; }
+.rank { color:var(--muted); font-size:12px; font-weight:500; }
+.risk { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:500;
+  border-radius:999px; padding:1px 8px; }
+.risk.low  { color:var(--good); background:color-mix(in srgb, var(--good) 10%, transparent); }
+.risk.med  { color:#9a6b00; background:color-mix(in srgb, #e0a800 15%, transparent); }
+.risk.high { color:var(--bad); background:color-mix(in srgb, var(--bad) 10%, transparent); }
+html[data-theme="dark"] .risk.med { color:#e0a800; }
+.who { color:var(--muted); font-size:12px; }
+.tags { display:flex; gap:6px; flex-wrap:wrap; }
+.tag { font-size:11px; color:var(--accent); background:var(--accent-soft);
+  border:1px solid color-mix(in srgb, var(--accent) 35%, transparent); padding:1px 8px; border-radius:999px; }
+.sparkwrap { position:relative; margin:2px 0; }
+.spark { display:block; width:100%; height:58px; }
+.tip { position:absolute; z-index:2; pointer-events:none; display:none;
+  background:var(--ink); color:var(--bg); border-radius:6px; padding:6px 9px;
+  font-size:11px; line-height:1.5; white-space:nowrap; transform:translate(-50%,-110%);
+  font-variant-numeric:tabular-nums; }
+.stats { display:flex; gap:22px; border-top:1px solid var(--line); padding-top:10px; }
+.stat .k { display:block; color:var(--muted); font-size:10.5px; text-transform:uppercase;
+  letter-spacing:.06em; margin-bottom:1px; }
+.stat .v { font-size:14.5px; font-weight:600; }
+.meta { display:flex; justify-content:space-between; color:var(--muted); font-size:11.5px; }
+.sep { color:var(--line2); }
+.empty { grid-column:1/-1; text-align:center; color:var(--muted); padding:40px 0;
+  background:var(--panel); border:1px dashed var(--line2); border-radius:var(--radius); }
+.foot { color:var(--muted); font-size:11.5px; margin-top:24px; }
+@media (max-width:900px){ .shell{grid-template-columns:1fr;} .sidebar{position:static; max-height:none;} }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><h1>Woong</h1><span class="badge">baskets</span></div>
+  <p class="promise">Rule-built stock baskets from independent analysts.</p>
+  <span class="dummy">Dummy data · design preview</span>
+  <button class="iconbtn" id="theme" title="Toggle light / dark" aria-label="Toggle theme">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  </button>
+  <a class="who" href="/">Back to scanner</a>
+</header>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <section>
+    <div class="rhead">
+      <p class="title">Explore baskets</p>
+      <span class="sub" id="count"></span>
+      <select id="sort" aria-label="Sort baskets">
+        <option value="ret1m">1M return</option>
+        <option value="alpha1m">Alpha vs Nifty 50</option>
+        <option value="minInvest">Min investment</option>
+        <option value="riskLow">Risk: low first</option>
+        <option value="updated">Recently updated</option>
+        <option value="launched">Newest</option>
+      </select>
+    </div>
+    <div class="grid" id="grid"></div>
+    <p class="foot">Baskets are rule outputs, not investment advice. Minimum investment assumes whole shares only.</p>
+  </section>
+</div>
+<script src="/basket-data.js"></script>
+<script>
+"use strict";
+
+/* ================= theme ================= */
+(function () {
+  const saved = localStorage.getItem("woong-theme");
+  const preferred = saved || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.documentElement.setAttribute("data-theme", preferred);
+  document.getElementById("theme").addEventListener("click", () => {
+    const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("woong-theme", next);
+  });
+})();
+
+/* ================= formatting ================= */
+const fmtINR = (n) => "₹" + Math.round(n).toLocaleString("en-IN");
+const fmtPct = (v, signed) => {
+  const s = v >= 0 && signed ? "+" : "";
+  return s + v.toFixed(2) + "%";
+};
+const signedClass = (v) => (v >= 0 ? "up" : "down");
+
+/* ================= derived metrics ================= */
+function weeklyVol(b) {
+  const r = [];
+  for (let i = 1; i < b.series.length; i += 1) {
+    r.push((b.series[i] - b.series[i - 1]) / b.series[i - 1]);
+  }
+  const mean = r.reduce((a, x) => a + x, 0) / r.length;
+  const varc = r.reduce((a, x) => a + (x - mean) * (x - mean), 0) / (r.length - 1);
+  return Math.sqrt(varc);
+}
+function riskLabel(b) {
+  const v = weeklyVol(b);
+  if (v < 0.016) return { key: "low", text: "Low risk" };
+  if (v < 0.032) return { key: "med", text: "Med risk" };
+  return { key: "high", text: "High risk" };
+}
+function counts(b) {
+  const etfs = b.stocks.filter((s) => s.kind === "etf").length;
+  return { stocks: b.stocks.length - etfs, etfs: etfs };
+}
+function minInvestWholeShares(stocks) {
+  let need = 0;
+  stocks.forEach((s) => {
+    const t = s.price / (s.weight / 100);
+    if (t > need) need = t;
+  });
+  return Math.ceil(need);
+}
+
+/* ================= sidebar filters ================= */
+const filters = { risk: new Set(), tags: new Set(), ret: "any", amount: "any", launched: "any", updated: "any" };
+
+function facetCountRisk(key) {
+  return window.BASKETS.filter((b) => riskLabel(b).key === key).length;
+}
+function facetCountTag(t) {
+  return window.BASKETS.filter((b) => b.tags.includes(t)).length;
+}
+const RISKS = [["low","Low risk"],["med","Medium risk"],["high","High risk"]];
+const TAGS = Array.from(new Set(window.BASKETS.reduce((a, b) => a.concat(b.tags), []))).sort();
+const RET_CHIPS = [["any","Any"],["pos","Positive"],["gt5","Above 5%"]];
+const AMT_CHIPS = [["any","Any"],["lt50","Under ₹50,000"],["50to80","₹50–80k"],["gt80","Above ₹80,000"]];
+const LAUNCH_CHIPS = [["any","Any time"],["l90","Last 90 days"],["l180","Last 180 days"],["l365","Last year"]];
+const UPD_CHIPS = [["any","Any"],["w1","This week"],["m1","This month"]];
+
+function sidebarHTML() {
+  const rows = (items, sel, group) => items.map(([v, label]) => {
+    const cnt = group === "risk" ? facetCountRisk(v) : group === "tags" ? facetCountTag(v) : "";
+    return '<label class="frow"><input type="checkbox" data-kind="' + group + '" value="' + v + '"' +
+      (sel.has(v) ? " checked" : "") + "><span>" + label + "</span>" +
+      (cnt !== "" ? '<span class="cnt">' + cnt + "</span>" : "") + "</label>";
+  }).join("");
+  const chips = (items, group) => '<div class="fchips">' + items.map(([v, label]) =>
+    '<button type="button" class="chip' + (filters[group] === v ? " on" : "") + '" data-kind="' + group + '" data-val="' + v + '">' + label + "</button>"
+  ).join("") + "</div>";
+  return '<div class="side-h"><b>Filters</b><button class="reset" id="reset">Reset</button></div>' +
+    '<div class="fgroup"><span class="flabel">Risk / volatility</span>' + rows(RISKS, filters.risk, "risk") + "</div>" +
+    '<div class="fgroup"><span class="flabel">Strategy</span>' + rows(TAGS.map((t) => [t, t]), filters.tags, "tags") + "</div>" +
+    '<div class="fgroup"><span class="flabel">1M return</span>' + chips(RET_CHIPS, "ret") + "</div>" +
+    '<div class="fgroup"><span class="flabel">Min investment</span>' + chips(AMT_CHIPS, "amount") + "</div>" +
+    '<div class="fgroup"><span class="flabel">Launched</span>' + chips(LAUNCH_CHIPS, "launched") + "</div>" +
+    '<div class="fgroup"><span class="flabel">Last updated</span>' + chips(UPD_CHIPS, "updated") + "</div>";
+}
+
+function daysSince(dateStr) {
+  return (new Date() - new Date(dateStr)) / 86400000;
+}
+function passFilters(b) {
+  if (filters.risk.size && !filters.risk.has(riskLabel(b).key)) return false;
+  if (filters.tags.size && !b.tags.some((t) => filters.tags.has(t))) return false;
+  if (filters.ret === "pos" && b.ret1m <= 0) return false;
+  if (filters.ret === "gt5" && b.ret1m <= 5) return false;
+  const mi = minInvestWholeShares(b.stocks);
+  if (filters.amount === "lt50" && mi >= 50000) return false;
+  if (filters.amount === "50to80" && (mi < 50000 || mi > 80000)) return false;
+  if (filters.amount === "gt80" && mi <= 80000) return false;
+  const age = daysSince(b.launched);
+  if (filters.launched === "l90" && age > 90) return false;
+  if (filters.launched === "l180" && age > 180) return false;
+  if (filters.launched === "l365" && age > 365) return false;
+  const upd = daysSince(b.updated);
+  if (filters.updated === "w1" && upd > 7) return false;
+  if (filters.updated === "m1" && upd > 31) return false;
+  return true;
+}
+
+/* ================= sparkline ================= */
+function sparklineParts(b) {
+  const W = 520, H = 84, PAD = 6;
+  const all = b.series.concat(b.nifty);
+  const min = Math.min.apply(null, all), max = Math.max.apply(null, all);
+  const span = (max - min) || 1;
+  const xAt = (i) => (i * (W - 2 * PAD)) / (b.series.length - 1) + PAD;
+  const yAt = (v) => H - PAD - ((v - min) / span) * (H - 2 * PAD);
+  const pts = (arr) => arr.map((v, i) => xAt(i).toFixed(1) + "," + yAt(v).toFixed(1)).join(" ");
+  const dates = b.series.map((_, i) => {
+    const d = new Date(b.updated);
+    d.setDate(d.getDate() - 7 * (b.series.length - 1 - i));
+    return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  });
+  return { W, H, PAD, xAt, dates,
+    svg: '<svg class="spark" viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none">' +
+      '<line x1="' + PAD + '" y1="' + yAt(100) + '" x2="' + (W - PAD) + '" y2="' + yAt(100) +
+      '" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
+      '<polyline fill="none" stroke="#9aa4b1" stroke-width="1.4" vector-effect="non-scaling-stroke" points="' + pts(b.nifty) + '"/>' +
+      '<polyline fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke" points="' + pts(b.series) + '"/>' +
+      '<line class="crosshair" x1="0" x2="0" y1="' + PAD + '" y2="' + (H - PAD) + '" stroke="var(--line2)" stroke-dasharray="3 3" visibility="hidden"/>' +
+      "</svg><div class='tip'></div>" };
+}
+function bindSpark(root, b) {
+  const svg = root.querySelector("svg");
+  const ch = root.querySelector(".crosshair");
+  const tip = root.querySelector(".tip");
+  const parts = sparklineParts(b);
+  svg.addEventListener("mousemove", (e) => {
+    const rect = svg.getBoundingClientRect();
+    const frac = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    const j = Math.round(frac * (b.series.length - 1));
+    ch.setAttribute("x1", parts.xAt(j));
+    ch.setAttribute("x2", parts.xAt(j));
+    ch.setAttribute("visibility", "visible");
+    tip.style.display = "block";
+    tip.style.left = (parts.xAt(j) / parts.W) * 100 + "%";
+    tip.innerHTML = "<b>" + parts.dates[j] + "</b><br>Basket " + b.series[j].toFixed(1) + " · Nifty " + b.nifty[j].toFixed(1);
+  });
+  svg.addEventListener("mouseleave", () => {
+    ch.setAttribute("visibility", "hidden");
+    tip.style.display = "none";
+  });
+}
+
+/* ================= card ================= */
+function cardHTML(b, position) {
+  const risk = riskLabel(b);
+  const c = counts(b);
+  const parts = sparklineParts(b);
+  return '<a class="card" href="/basket/' + b.id + '">' +
+    '<span class="go">View basket →</span>' +
+    '<div class="crow"><span class="rank">#' + position + '</span><span class="name">' + b.name + '</span>' +
+      '<span class="risk ' + risk.key + '">' + risk.text + "</span></div>" +
+    '<div class="crow"><span class="who">by ' + b.provider + "</span></div>" +
+    '<div class="tags">' + b.tags.map((t) => '<span class="tag">' + t + "</span>").join("") + "</div>" +
+    '<div class="sparkwrap">' + parts.svg + "</div>" +
+    '<div class="stats">' +
+      '<div class="stat"><span class="k">1M return</span><span class="v num ' + signedClass(b.ret1m) + '">' + fmtPct(b.ret1m, false) + "</span></div>" +
+      '<div class="stat"><span class="k">vs Nifty 50</span><span class="v num ' + signedClass(b.alpha1m) + '">' + fmtPct(b.alpha1m, true) + "</span></div>" +
+      '<div class="stat"><span class="k">Min investment</span><span class="v num" title="Whole shares only — no fractional buying">' + fmtINR(minInvestWholeShares(b.stocks)) + "</span></div>" +
+    "</div>" +
+    '<div class="meta"><span>' + c.stocks + " stocks" + (c.etfs ? " · " + c.etfs + " ETFs" : "") +
+      ' <span class="sep">|</span> Launched ' + b.launched + "</span><span>Updated " + b.updated + "</span></div>" +
+    "</a>";
+}
+
+/* ================= render ================= */
+function render() {
+  let list = window.BASKETS.filter(passFilters);
+  const key = document.getElementById("sort").value;
+  list = list.slice().sort((a, b) => {
+    if (key === "minInvest") return minInvestWholeShares(a.stocks) - minInvestWholeShares(b.stocks);
+    if (key === "riskLow") return weeklyVol(a) - weeklyVol(b);
+    if (key === "updated") return new Date(b.updated) - new Date(a.updated);
+    if (key === "launched") return new Date(b.launched) - new Date(a.launched);
+    return b[key] - a[key];
+  });
+  const grid = document.getElementById("grid");
+  grid.innerHTML = list.length
+    ? list.map((b, i) => cardHTML(b, i + 1)).join("")
+    : '<div class="empty">No basket matches these filters. Try clearing one.</div>';
+  Array.prototype.forEach.call(grid.children, (root, i) => {
+    if (root.classList.contains("card")) bindSpark(root, list[i]);
+  });
+  document.getElementById("count").textContent =
+    list.length + " of " + window.BASKETS.length + " baskets · As of 18 Sep 2026";
+}
+
+/* ================= wire up ================= */
+document.getElementById("sidebar").innerHTML = sidebarHTML();
+document.getElementById("sidebar").addEventListener("change", (e) => {
+  const kind = e.target.getAttribute("data-kind");
+  if (!kind) return;
+  const set = filters[kind];
+  if (e.target.checked) set.add(e.target.value); else set.delete(e.target.value);
+  render();
+});
+document.getElementById("sidebar").addEventListener("click", (e) => {
+  if (e.target.id === "reset") {
+    filters.risk.clear(); filters.tags.clear();
+    filters.ret = "any"; filters.amount = "any"; filters.launched = "any"; filters.updated = "any";
+    document.getElementById("sidebar").innerHTML = sidebarHTML();
+    render();
+    return;
+  }
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  filters[chip.getAttribute("data-kind")] = chip.getAttribute("data-val");
+  document.getElementById("sidebar").innerHTML = sidebarHTML();
+  render();
+});
+document.getElementById("sort").addEventListener("change", render);
+render();
+</script>
+</body>
+</html>
