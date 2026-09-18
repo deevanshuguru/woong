@@ -314,6 +314,14 @@ def run_query(
     for item in (query.get("rank") or {}).get("by") or []:
         used.append(str(item["metric"]))
     used_unique = list(dict.fromkeys(used))
+    # Anchor columns ride along on every result: a stranger's stock needs a
+    # price and two short returns before any rule metric means anything.
+    anchor_columns = [
+        column
+        for column in ("close", "return_1m", "return_3m")
+        if column in ranked.columns and column not in used_unique
+    ]
+    used_unique = anchor_columns + used_unique
     display_cols = ["symbol", "exchange", "name"] + [
         metric for metric in used_unique if metric in ranked.columns
     ]
