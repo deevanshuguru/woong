@@ -18,6 +18,7 @@ html[data-theme="dark"] {
   --good:#2ea45a; --bad:#e05252; --warn-bg:#332b12; --warn-ink:#e7c56a; --warn-line:#5a4a1a;
 }
 * { box-sizing:border-box; }
+:root { --r-card:12px; --r-ctl:8px; --r-pill:999px; }
 body { margin:0; background:var(--bg); color:var(--ink);
   font:13.5px/1.5 Poppins,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; }
 a { color:inherit; text-decoration:none; }
@@ -63,6 +64,34 @@ a { color:inherit; text-decoration:none; }
 .rhead .sub { color:var(--muted); font-size:12px; }
 .rhead select { font:inherit; font-size:12.5px; color:var(--ink); background:var(--panel);
   border:1px solid var(--line2); border-radius:8px; padding:6px 8px; }
+
+
+.sortlabel { color:var(--muted); font-size:12px; margin-left:auto; }
+.card, .sidebar, .panel, .empty { border-radius:var(--r-card); }
+.toolbar input, .toolbar select, .rhead select, .iconbtn { border-radius:var(--r-ctl); }
+.tag, .rank, .risk, .dummy, .chip, .rankbadge { border-radius:var(--r-pill); }
+.overlay { position:fixed; inset:0; z-index:20; visibility:hidden; }
+.overlay.open { visibility:visible; }
+.scrim { position:absolute; inset:0; background:rgba(10,14,20,.45); opacity:0; transition:opacity .15s ease; }
+.overlay.open .scrim { opacity:1; }
+.panel { position:absolute; top:0; right:0; height:100%; width:420px; max-width:92vw;
+  background:var(--panel); border-left:1px solid var(--line);
+  transform:translateX(102%); transition:transform .18s ease;
+  display:flex; flex-direction:column; }
+.overlay.open .panel { transform:translateX(0); }
+.phead { display:flex; align-items:center; justify-content:space-between;
+  padding:14px 18px; border-bottom:1px solid var(--line); }
+.pbody { padding:18px; overflow:auto; flex:1; display:flex; flex-direction:column; gap:8px; }
+.pfoot { padding:14px 18px; border-top:1px solid var(--line); }
+.primarylink { display:block; text-align:center; background:var(--accent); color:#fff;
+  border-radius:var(--r-ctl); padding:10px 16px; font-weight:600; }
+.primarylink:hover { filter:brightness(1.08); }
+.plabel { margin:8px 0 2px; font-size:11px; font-weight:600; text-transform:uppercase;
+  letter-spacing:.07em; color:var(--muted); }
+.rulebox { background:var(--panel2); border:1px solid var(--line); border-radius:var(--r-ctl);
+  padding:10px 12px; font-size:13px; }
+.hrow { display:flex; justify-content:space-between; gap:10px; padding:6px 0;
+  border-bottom:1px solid var(--line); font-size:12.5px; }
 
 /* ---- cards ---- */
 .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
@@ -121,6 +150,7 @@ html[data-theme="dark"] .risk.med { color:#e0a800; }
     <div class="rhead">
       <p class="title">Explore baskets</p>
       <span class="sub" id="count"></span>
+      <label class="sortlabel" for="sort">Sort by</label>
       <select id="sort" aria-label="Sort baskets">
         <option value="ret1m">1M return</option>
         <option value="alpha1m">Alpha vs Nifty 50</option>
@@ -193,21 +223,21 @@ const filters = { risk: new Set(), tags: new Set(), ret: "any", amount: "any", l
 function facetCountRisk(key) {
   return window.BASKETS.filter((b) => riskLabel(b).key === key).length;
 }
-function facetCountTag(t) {
-  return window.BASKETS.filter((b) => b.tags.includes(t)).length;
-}
 const RISKS = [["low","Low risk"],["med","Medium risk"],["high","High risk"]];
-const TAGS = Array.from(new Set(window.BASKETS.reduce((a, b) => a.concat(b.tags), []))).sort();
-const RET_CHIPS = [["any","Any"],["pos","Positive"],["gt5","Above 5%"]];
+const RET_CHIPS = [["any","Any"],["neg","Negative"],["pos","Positive"],["0to5","0–5%"],["gt5","Above 5%"]];
 const AMT_CHIPS = [["any","Any"],["lt50","Under ₹50,000"],["50to80","₹50–80k"],["gt80","Above ₹80,000"]];
 const LAUNCH_CHIPS = [["any","Any time"],["l90","Last 90 days"],["l180","Last 180 days"],["l365","Last year"]];
 const UPD_CHIPS = [["any","Any"],["w1","This week"],["m1","This month"]];
 
 function sidebarHTML() {
+  const riskColor = { low: "var(--good)", med: "#9a6b00", high: "var(--bad)" };
   const rows = (items, sel, group) => items.map(([v, label]) => {
-    const cnt = group === "risk" ? facetCountRisk(v) : group === "tags" ? facetCountTag(v) : "";
+    const cnt = group === "risk" ? facetCountRisk(v) : "";
+    const labelHtml = group === "risk"
+      ? '<span style="color:' + riskColor[v] + ';font-weight:500">' + label + "</span>"
+      : "<span>" + label + "</span>";
     return '<label class="frow"><input type="checkbox" data-kind="' + group + '" value="' + v + '"' +
-      (sel.has(v) ? " checked" : "") + "><span>" + label + "</span>" +
+      (sel.has(v) ? " checked" : "") + ">" + labelHtml +
       (cnt !== "" ? '<span class="cnt">' + cnt + "</span>" : "") + "</label>";
   }).join("");
   const chips = (items, group) => '<div class="fchips">' + items.map(([v, label]) =>
@@ -215,7 +245,7 @@ function sidebarHTML() {
   ).join("") + "</div>";
   return '<div class="side-h"><b>Filters</b><button class="reset" id="reset">Reset</button></div>' +
     '<div class="fgroup"><span class="flabel">Risk / volatility</span>' + rows(RISKS, filters.risk, "risk") + "</div>" +
-    '<div class="fgroup"><span class="flabel">Strategy</span>' + rows(TAGS.map((t) => [t, t]), filters.tags, "tags") + "</div>" +
+
     '<div class="fgroup"><span class="flabel">1M return</span>' + chips(RET_CHIPS, "ret") + "</div>" +
     '<div class="fgroup"><span class="flabel">Min investment</span>' + chips(AMT_CHIPS, "amount") + "</div>" +
     '<div class="fgroup"><span class="flabel">Launched</span>' + chips(LAUNCH_CHIPS, "launched") + "</div>" +
@@ -225,10 +255,18 @@ function sidebarHTML() {
 function daysSince(dateStr) {
   return (new Date() - new Date(dateStr)) / 86400000;
 }
+function ago(dateStr) {
+  const d = daysSince(dateStr);
+  if (d < 45) return Math.max(1, Math.round(d / 7)) + "w ago";
+  if (d < 365) return Math.round(d / 30) + "M ago";
+  return (Math.round((d / 365) * 10) / 10) + "Y ago";
+}
 function passFilters(b) {
   if (filters.risk.size && !filters.risk.has(riskLabel(b).key)) return false;
   if (filters.tags.size && !b.tags.some((t) => filters.tags.has(t))) return false;
+  if (filters.ret === "neg" && b.ret1m >= 0) return false;
   if (filters.ret === "pos" && b.ret1m <= 0) return false;
+  if (filters.ret === "0to5" && (b.ret1m <= 0 || b.ret1m > 5)) return false;
   if (filters.ret === "gt5" && b.ret1m <= 5) return false;
   const mi = minInvestWholeShares(b.stocks);
   if (filters.amount === "lt50" && mi >= 50000) return false;
@@ -262,8 +300,8 @@ function sparklineParts(b) {
     svg: '<svg class="spark" viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none">' +
       '<line x1="' + PAD + '" y1="' + yAt(100) + '" x2="' + (W - PAD) + '" y2="' + yAt(100) +
       '" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
-      '<polyline fill="none" stroke="#9aa4b1" stroke-width="1.4" vector-effect="non-scaling-stroke" points="' + pts(b.nifty) + '"/>' +
-      '<polyline fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke" points="' + pts(b.series) + '"/>' +
+      '<polyline fill="none" stroke="#9aa4b1" stroke-width="1.4" stroke-dasharray="4 3" vector-effect="non-scaling-stroke" points="' + pts(b.nifty) + '"/>' +
+      '<polyline fill="none" stroke="' + (b.series[b.series.length - 1] >= b.nifty[b.nifty.length - 1] ? "var(--good)" : "var(--bad)") + '" stroke-width="2" vector-effect="non-scaling-stroke" points="' + pts(b.series) + '"/>' +
       '<line class="crosshair" x1="0" x2="0" y1="' + PAD + '" y2="' + (H - PAD) + '" stroke="var(--line2)" stroke-dasharray="3 3" visibility="hidden"/>' +
       "</svg><div class='tip'></div>" };
 }
@@ -294,12 +332,12 @@ function cardHTML(b, position) {
   const risk = riskLabel(b);
   const c = counts(b);
   const parts = sparklineParts(b);
-  return '<a class="card" href="/basket/' + b.id + '">' +
-    '<span class="go">View basket →</span>' +
+  return '<div class="card" role="link" tabindex="0" data-open="' + b.id + '">' +
+    '<span class="go">Quick view →</span>' +
     '<div class="crow"><span class="rank">#' + position + '</span><span class="name">' + b.name + '</span>' +
       '<span class="risk ' + risk.key + '">' + risk.text + "</span></div>" +
     '<div class="crow"><span class="who">by ' + b.provider + "</span></div>" +
-    '<div class="tags">' + b.tags.map((t) => '<span class="tag">' + t + "</span>").join("") + "</div>" +
+    '<div class="tags">' + b.tags.map((t) => '<span class="tag">' + titleCase(t) + "</span>").join("") + "</div>" +
     '<div class="sparkwrap">' + parts.svg + "</div>" +
     '<div class="stats">' +
       '<div class="stat"><span class="k">1M return</span><span class="v num ' + signedClass(b.ret1m) + '">' + fmtPct(b.ret1m, false) + "</span></div>" +
@@ -307,9 +345,73 @@ function cardHTML(b, position) {
       '<div class="stat"><span class="k">Min investment</span><span class="v num" title="Whole shares only — no fractional buying">' + fmtINR(minInvestWholeShares(b.stocks)) + "</span></div>" +
     "</div>" +
     '<div class="meta"><span>' + c.stocks + " stocks" + (c.etfs ? " · " + c.etfs + " ETFs" : "") +
-      ' <span class="sep">|</span> Launched ' + b.launched + "</span><span>Updated " + b.updated + "</span></div>" +
+      ' <span class="sep">|</span> Launched ' + ago(b.launched) + "</span><span>Updated " + ago(b.updated) + "</span></div>" +
     "</a>";
 }
+
+
+/* ================= slide-over: basket quick view ================= */
+const overlay = document.createElement("div");
+overlay.className = "overlay";
+overlay.innerHTML =
+  '<div class="scrim"></div>' +
+  '<aside class="panel" role="dialog" aria-label="Basket quick view">' +
+  '<div class="phead"><b>Quick view</b><button class="iconbtn" id="pclose" aria-label="Close">✕</button></div>' +
+  '<div class="pbody" id="pbody"></div>' +
+  '<div class="pfoot"><a class="primarylink" id="pfull">Open full page →</a></div>' +
+  "</aside>";
+document.body.appendChild(overlay);
+
+function openQuick(b) {
+  const risk = riskLabel(b);
+  const c = counts(b);
+  const top = b.stocks.slice().sort((x, y) => y.weight - x.weight).slice(0, 5);
+  document.getElementById("pbody").innerHTML =
+    '<div class="crow"><span class="rank">#' + b.rank + "</span>" +
+    '<span class="risk ' + risk.key + '">' + risk.text + "</span></div>" +
+    '<div class="name" style="font-size:18px">' + b.name + "</div>" +
+    '<div class="who">by ' + b.provider + " · Launched " + ago(b.launched) + " · Updated " + ago(b.updated) + "</div>" +
+    '<div class="tags">' + b.tags.map((t) => titleCase(t)).map((t) => '<span class="tag">' + t + "</span>").join("") + "</div>" +
+    '<div class="sparkwrap">' + sparklineParts(b).svg + "</div>" +
+    '<div class="stats" style="border-top:0;padding-top:0">' +
+    '<div class="stat"><span class="k">1M return</span><span class="v num ' + signedClass(b.ret1m) + '">' + fmtPct(b.ret1m, false) + "</span></div>" +
+    '<div class="stat"><span class="k">vs Nifty 50</span><span class="v num ' + signedClass(b.alpha1m) + '">' + fmtPct(b.alpha1m, true) + "</span></div>" +
+    '<div class="stat"><span class="k">Min investment</span><span class="v num">' + fmtINR(minInvestWholeShares(b.stocks)) + "</span></div>" +
+    "</div>" +
+    '<p class="plabel">The rule</p><div class="rulebox">' + b.idea + "</div>" +
+    '<p class="plabel">Top holdings</p><div id="phold"></div>';
+  document.getElementById("phold").innerHTML = top.map((s) => {
+    const kind = s.kind === "etf" ? " · ETF" : "";
+    return '<div class="hrow"><span><b>' + s.symbol + "</b> · " + s.name + kind + "</span><span class="num">" + s.weight + "%</span></div>";
+  }).join("");
+  bindSpark(document.getElementById("pbody"), b);
+  document.getElementById("pfull").setAttribute("href", "/basket/" + b.id);
+  overlay.classList.add("open");
+}
+function titleCase(t) {
+  return t.split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+}
+function closeQuick() {
+  overlay.classList.remove("open");
+}
+overlay.querySelector(".scrim").addEventListener("click", closeQuick);
+overlay.querySelector("#pclose").addEventListener("click", closeQuick);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeQuick();
+});
+document.getElementById("grid").addEventListener("click", (e) => {
+  const card = e.target.closest("[data-open]");
+  if (!card) return;
+  const b = window.BASKETS.find((x) => x.id === card.getAttribute("data-open"));
+  if (b) openQuick(b);
+});
+document.getElementById("grid").addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  const card = e.target.closest("[data-open]");
+  if (!card) return;
+  const b = window.BASKETS.find((x) => x.id === card.getAttribute("data-open"));
+  if (b) openQuick(b);
+});
 
 /* ================= render ================= */
 function render() {
