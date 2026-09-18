@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Woong instrument</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main class="page" id="page">
+  <p class="nav"><a href="/">Back to the scanner</a></p>
+  <p id="loading" class="muted">Reading the warehouse.</p>
+  <div id="body" hidden>
+    <header class="identity">
+      <h1 class="display" id="name"></h1>
+      <p class="identity-line">
+        <span class="mono" id="code"></span>
+        <span class="kind-badge" id="kind"></span>
+        <span class="muted" id="isin"></span>
+        <span class="muted" id="asof"></span>
+      </p>
+    </header>
+
+    <section class="band" id="headline-band">
+      <p class="eyebrow">Last stored session</p>
+      <div class="stat-row" id="headline"></div>
+      <div id="price-chart"></div>
+    </section>
+
+    <section class="band" id="seasonality-band" hidden>
+      <p class="eyebrow">Monthly seasonality</p>
+      <p class="body-soft" id="seasonality-lead"></p>
+      <div id="seasonality-chart"></div>
+      <div class="table-wrap" id="seasonality-table"></div>
+    </section>
+
+    <div id="groups"></div>
+
+    <section class="band" id="prices-band">
+      <p class="eyebrow">Stored sessions</p>
+      <div class="table-wrap" id="prices"></div>
+    </section>
+
+    <section class="band" id="events-band">
+      <p class="eyebrow">Corporate events</p>
+      <div class="table-wrap" id="events"></div>
+    </section>
+
+    <section class="band" id="insider-band">
+      <p class="eyebrow">Insider trades</p>
+      <div class="table-wrap" id="insider"></div>
+    </section>
+
+    <section class="band" id="off-band">
+      <p class="eyebrow">What this page does not show</p>
+      <div class="metric-grid" id="off"></div>
+    </section>
+
+    <p class="disclaimer" id="disclaimer"></p>
+  </div>
+  <p class="error" id="error" hidden></p>
+</main>
+
+<script>
+const params = new URLSearchParams(location.search);
+const parts = location.pathname.split("/").filter(Boolean);
+const exchange = params.get("exchange") || parts[1] || "";
+const symbol = decodeURIComponent(params.get("symbol") || parts[2] || "");
+
+function el(tag, cls, text) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text !== undefined && text !== null) node.textContent = text;
+  return node;
+}
+
+// Sign is read from the stored number, never decided here.
+function signClass(value) {
+  if (value === null || value === undefined) return "";
+  return value > 0 ? "up" : value < 0 ? "down" : "";
+}
+
+function stat(label, display, note, value) {
+  const box = el("div", "stat");
+  box.append(el("label", null, label));
+  const figure = el("b", signClass(value), display === null || display === undefined ? "had no value" : display);
+  if (display === null || display === undefined) figure.className = "muted";
+  box.append(figure);
+  if (note) box.append(el("small", null, note));
+  return box;
+}
+
+function table(columns, rows) {
+  const t = el("table");
+  const head = el("tr");
+  columns.forEach(function (col) {
+    head.append(el("th", col.numeric ? "num" : null, col.label));
+  });
+  const thead = el("thead");
+  thead.append(head);
+  t.append(thead);
+  const body = el("tbody");
+  rows.forEach(function (row) {
+    const tr = el("tr");
+    columns.forEach(function (col) {
+      const raw = row[col.key];
+      const cell = el("td", [col.numeric ? "num" : "", col.code ? "code" : "", col.sign ? signClass(raw) : ""].filter(Boolean).join(" "));
+      if (raw === null || raw === undefined) {
+        cell.className += " muted";
+        cell.textContent = "had no value";
+      } else {
+        cell.textContent = col.format ? col.format(raw) : raw;
+      }
+      tr.append(cell);
+    });
+    body.append(tr);
+  });
+  t.append(body);
+  return t;
+}
+
+function pct(value) { return (value * 100).toFixed(2) + "%"; }
+function money(value) { return Number(value).toFixed(2); }
+
+// The geometry arrives finished. This only draws it.
+function lineChart(windows) {
+  const wrap = el("div");
+  const toggle = el("div", "chart-toggle");
+  const frames = [];
+  windows.forEach(function (win, index) {
+    const frame = el("div", "chart-frame");
+    frame.hidden = index !== 0;
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 " + win.width + " " + win.height);
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Close from " + win.first_date + " to " + win.last_date);
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+    line.setAttribute("points", win.points);
+    line.setAttribute("fill", "none");
+    line.setAttribute("stroke", "currentColor");
+    line.setAttribute("stroke-width", "1.5");
+    svg.append(line);
+    frame.append(svg);
+    const axis = el("div", "chart-axis");
+    axis.append(el("span", null, win.first_date + " · " + money(win.first_value)));
+    axis.append(el("span", null, "low " + money(win.low) + " on " + win.low_date));
+    axis.append(el("span", null, "high " + money(win.high) + " on " + win.high_date));
+    axis.append(el("span", null, win.last_date + " · " + money(win.last_value)));
+    frame.append(axis);
+    let note = win.session_count + " stored sessions.";
+    if (win.short) note += " The window asked for " + win.asked_for + " and the warehouse holds fewer.";
+    if (win.flat) note += " Every close in this window is the same, so the line is drawn flat.";
+    frame.append(el("p", "chart-note", note));
+    frames.push(frame);
+    const button = el("button", "quiet" + (index === 0 ? " active" : ""), win.label);
+    button.addEventListener("click", function () {
+      frames.forEach(function (f, i) { f.hidden = i !== index; });
+      Array.from(toggle.children).forEach(function (b, i) {
+        b.className = "quiet" + (i === index ? " active" : "");
+      });
+    });
+    toggle.append(button);
+  });
+  wrap.append(toggle);
+  frames.forEach(function (f) { wrap.append(f); });
+  return wrap;
+}
+
+function barChart(geometry, monthLabel) {
+  const frame = el("div", "chart-frame");
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 " + geometry.width + " " + (geometry.height + 18));
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "Average return by calendar month");
+  const zero = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  zero.setAttribute("x1", 0);
+  zero.setAttribute("x2", geometry.width);
+  zero.setAttribute("y1", geometry.zero_y);
+  zero.setAttribute("y2", geometry.zero_y);
+  zero.setAttribute("stroke", "currentColor");
+  zero.setAttribute("stroke-width", "1");
+  zero.setAttribute("opacity", "0.35");
+  svg.append(zero);
+  geometry.bars.forEach(function (bar) {
+    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    label.setAttribute("x", bar.x + bar.width / 2);
+    label.setAttribute("y", geometry.height + 14);
+    label.setAttribute("text-anchor", "middle");
+    label.setAttribute("font-size", "10");
+    label.setAttribute("fill", "currentColor");
+    label.setAttribute("opacity", "0.7");
+    label.textContent = bar.label;
+    if (monthLabel && bar.label === monthLabel) label.setAttribute("opacity", "1");
+    svg.append(label);
+    if (bar.missing) return;
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("x", bar.x);
+    rect.setAttribute("y", bar.y);
+    rect.setAttribute("width", bar.width);
+    rect.setAttribute("height", bar.height);
+    rect.setAttribute("fill", "currentColor");
+    rect.setAttribute("class", bar.sign);
+    svg.append(rect);
+  });
+  frame.append(svg);
+  const axis = el("div", "chart-axis");
+  axis.append(el("span", null, "low " + pct(geometry.low)));
+  axis.append(el("span", null, "zero line drawn"));
+  axis.append(el("span", null, "high " + pct(geometry.high)));
+  frame.append(axis);
+  if (geometry.missing_count) {
+    frame.append(el("p", "chart-note", geometry.missing_count + " of 12 months had no stored value and are drawn as no bar."));
+  }
+  return frame;
+}
+
+function refusal(text) {
+  return el("p", "refusal", text);
+}
+
+function render(data) {
+  document.title = data.name + " · Woong";
+  document.getElementById("name").textContent = data.name;
+  document.getElementById("code").textContent = data.exchange + ":" + data.symbol;
+  document.getElementById("kind").textContent = data.instrument_kind + (data.index_class ? " · " + data.index_class : "");
+  document.getElementById("isin").textContent = data.isin ? "ISIN " + data.isin : "no ISIN stored";
+  document.getElementById("asof").textContent = data.as_of ? "as of " + data.as_of : "not on the snapshot";
+
+  const headline = document.getElementById("headline");
+  headline.append(stat("Close", data.headline.close_display, data.last_date ? "last stored session " + data.last_date : "", null));
+  headline.append(stat("One-day return", data.headline.return_1d_display, "close to close", data.headline.return_1d));
+  headline.append(stat("Stored sessions", data.session_count ? String(data.session_count) : null,
+    data.first_date ? data.first_date + " to " + data.last_date : "", null));
+
+  const chartBox = document.getElementById("price-chart");
+  if (data.price_chart.length) {
+    chartBox.append(lineChart(data.price_chart));
+  } else {
+    chartBox.append(refusal(data.price_chart_reason));
+  }
+
+  if (data.seasonality_chart || data.seasonality_reason) {
+    const band = document.getElementById("seasonality-band");
+    band.hidden = false;
+    const lead = document.getElementById("seasonality-lead");
+    if (data.seasonality_chart) {
+      lead.textContent = "Average calendar-month return across every year the feed holds. "
+        + (data.seasonality_month ? "The as-of date falls in " + data.seasonality_month + "." : "");
+      document.getElementById("seasonality-chart").append(barChart(data.seasonality_chart, data.seasonality_month));
+      document.getElementById("seasonality-table").append(table([
+        { key: "month", label: "Month" },
+        { key: "avg_monthly_return", label: "Average", numeric: true, sign: true, format: pct },
+        { key: "median_monthly_return", label: "Median", numeric: true, sign: true, format: pct },
+        { key: "std_monthly_return", label: "Spread", numeric: true, format: pct },
+        { key: "positive_return_ratio", label: "Share up", numeric: true, format: pct },
+        { key: "positive_months", label: "Months up", numeric: true },
+        { key: "total_months", label: "Months counted", numeric: true },
+        { key: "start_year", label: "From", numeric: true },
+        { key: "end_year", label: "To", numeric: true }
+      ], data.seasonality_rows));
+    } else {
+      lead.textContent = "";
+      document.getElementById("seasonality-chart").append(refusal(data.seasonality_reason));
+    }
+  }
+
+  const groups = document.getElementById("groups");
+  data.metric_groups.forEach(function (group) {
+    const band = el("section", "band");
+    band.append(el("p", "eyebrow", group.title));
+    const grid = el("div", "metric-grid");
+    group.metrics.forEach(function (metric) {
+      const cell = el("div", "metric-cell");
+      cell.append(el("label", null, metric.label));
+      if (metric.display === null || metric.display === undefined) {
+        cell.append(el("b", "muted", metric.available ? "had no value" : "switched off"));
+        cell.append(el("span", "refusal-inline", metric.reason));
+      } else {
+        cell.append(el("b", metric.unit === "ratio" ? signClass(metric.value) : "", metric.display));
+        cell.append(el("span", "definition", metric.definition));
+      }
+      grid.append(cell);
+    });
+    band.append(grid);
+    groups.append(band);
+  });
+
+  const pricesBand = document.getElementById("prices-band");
+  if (data.prices.length) {
+    document.getElementById("prices").append(table([
+      { key: "date", label: "Date" },
+      { key: "close", label: "Close", numeric: true, format: money },
+      { key: "open", label: "Open", numeric: true, format: money },
+      { key: "high", label: "High", numeric: true, format: money },
+      { key: "low", label: "Low", numeric: true, format: money },
+      { key: "volume", label: "Volume", numeric: true }
+    ], data.prices.slice().reverse()));
+  } else {
+    pricesBand.hidden = true;
+  }
+
+  const eventsBand = document.getElementById("events-band");
+  if (data.events.length) {
+    document.getElementById("events").append(table([
+      { key: "primary_date", label: "Date" },
+      { key: "event_type", label: "Event" },
+      { key: "description", label: "Description" },
+      { key: "details", label: "Details" }
+    ], data.events));
+  } else {
+    eventsBand.hidden = true;
+  }
+
+  const insiderBand = document.getElementById("insider-band");
+  if (data.insider.length) {
+    insiderBand.append(el("p", "muted", data.insider_total + " stored trades. Showing the most recent " + data.insider.length + "."));
+    document.getElementById("insider").append(table([
+      { key: "trade_date", label: "Date" },
+      { key: "person_name", label: "Person" },
+      { key: "person_category", label: "Category" },
+      { key: "transaction_type", label: "Transaction" },
+      { key: "acquired_quantity", label: "Acquired", numeric: true },
+      { key: "disposed_quantity", label: "Disposed", numeric: true },
+      { key: "holdings_after", label: "Holding after", numeric: true }
+    ], data.insider));
+  } else {
+    insiderBand.hidden = true;
+  }
+
+  const off = document.getElementById("off");
+  data.switched_off.forEach(function (item) {
+    const box = el("div", "metric-cell");
+    box.append(el("label", null, item.label));
+    box.append(el("span", "refusal-inline", item.reason));
+    off.append(box);
+  });
+
+  document.getElementById("disclaimer").textContent = data.disclaimer;
+  document.getElementById("loading").hidden = true;
+  document.getElementById("body").hidden = false;
+}
+
+fetch("/api/instrument?exchange=" + encodeURIComponent(exchange) + "&symbol=" + encodeURIComponent(symbol))
+  .then(function (response) {
+    return response.json().then(function (payload) {
+      if (!response.ok) throw new Error(payload.error || "The request failed.");
+      return payload;
+    });
+  })
+  .then(render)
+  .catch(function (err) {
+    document.getElementById("loading").hidden = true;
+    const box = document.getElementById("error");
+    box.hidden = false;
+    box.textContent = err.message;
+  });
+</script>
+</body>
+</html>

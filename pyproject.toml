@@ -5,6 +5,7 @@
 testpaths = ["tests"]
 # Tests are offline by design. Anything that needs a network is not a test.
 addopts = "-ra --strict-markers"
+pythonpath = ["."]
 
 [tool.ruff]
 line-length = 88

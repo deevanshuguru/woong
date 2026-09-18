@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1100">
+  <title>Woong</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="left">
+      <div class="brand">
+        <h1>Woong</h1>
+        <span class="source-tag">desk</span>
+      </div>
+      <p class="pane-note">A rule in. A ranked list out. The list is what the rule returns today.</p>
+
+      <p class="eyebrow">Open one name</p>
+      <form id="lookup" class="lookup">
+        <input id="lookup-q" type="text" spellcheck="false" placeholder="Symbol or name" aria-label="Symbol or name">
+        <button type="submit" class="quiet">Open</button>
+      </form>
+      <p id="lookup-error" class="error"></p>
+
+      <p class="eyebrow">Start from a study</p>
+      <input id="study-search" class="study-search" type="text" spellcheck="false" placeholder="Search studies" aria-label="Search studies">
+      <div id="studies" class="studies"></div>
+
+      <div class="steps" id="steps">
+        <section class="step open" data-step="universe">
+          <button type="button" class="step-head" data-toggle="universe">
+            <span class="step-num">1</span>
+            <span>
+              <span class="step-title">Universe</span>
+              <span class="step-summary" id="summary-universe">Choose who is in the conversation</span>
+            </span>
+            <span class="step-chevron" aria-hidden="true">v</span>
+          </button>
+          <div class="step-body">
+            <p class="hint">Filter decides who is in. Ranking comes later.</p>
+            <select id="universe"></select>
+            <div class="step-actions">
+              <button type="button" class="quiet" data-next="conditions">Next: Conditions</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="step" data-step="conditions">
+          <button type="button" class="step-head" data-toggle="conditions">
+            <span class="step-num">2</span>
+            <span>
+              <span class="step-title">Conditions</span>
+              <span class="step-summary" id="summary-conditions">No conditions yet</span>
+            </span>
+            <span class="step-chevron" aria-hidden="true">v</span>
+          </button>
+          <div class="step-body">
+            <p class="hint">Match all means every condition must pass. Match any means one is enough. A nested group keeps its own join.</p>
+            <div class="join-toggle" role="group" aria-label="Outer join">
+              <button type="button" class="quiet" id="root-and">Match all</button>
+              <button type="button" class="quiet" id="root-or">Match any</button>
+            </div>
+            <div id="conditions" class="cond-list"></div>
+            <div class="step-actions">
+              <button type="button" class="quiet" id="add-condition">Add condition</button>
+              <button type="button" class="quiet" id="add-group">Add nested group</button>
+              <button type="button" class="quiet" data-next="ranking">Next: Ranking</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="step" data-step="ranking">
+          <button type="button" class="step-head" data-toggle="ranking">
+            <span class="step-num">3</span>
+            <span>
+              <span class="step-title">Ranking</span>
+              <span class="step-summary" id="summary-ranking">Choose order and how many</span>
+            </span>
+            <span class="step-chevron" aria-hidden="true">v</span>
+          </button>
+          <div class="step-body">
+            <p class="hint">Ranking only orders names that already passed the filter. Only a metric that is comparable across companies can be ranked.</p>
+            <div id="rank-list" class="cond-list"></div>
+            <div class="step-actions">
+              <button type="button" class="quiet" id="add-rank">Add a second measure</button>
+            </div>
+            <label class="inline" style="margin-top:var(--space-base)">
+              how many
+              <input id="top-n" type="number" min="1" value="30" aria-label="How many rows">
+            </label>
+          </div>
+        </section>
+      </div>
+
+      <div class="run-bar">
+        <button type="button" class="primary" id="run">Run the rule</button>
+      </div>
+    </aside>
+    <main class="right">
+      <div id="counts" class="counts"></div>
+      <p id="asof" class="asof"></p>
+      <p id="readback" class="readback"></p>
+      <p id="disclaimer" class="disclaimer"></p>
+      <div id="attr" class="attr"></div>
+      <p id="error" class="error"></p>
+      <div class="table-wrap">
+        <table>
+          <thead id="head"></thead>
+          <tbody id="body"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <script>
+    const state = {
+      meta: null,
+      studyId: null,
+      filter: { op: "and", args: [] },
+      rank: [{ metric: "return_1y", dir: "desc", weight: 1 }],
+    };
+    const $ = (id) => document.getElementById(id);
+
+    // Words, not symbols. A comparison a user has to decode is a comparison they
+    // get wrong.
+    const CMP_WORDS = {
+      ">": "is above",
+      ">=": "is at least",
+      "<": "is below",
+      "<=": "is at most",
+      "=": "equals",
+      "!=": "does not equal"
+    };
+    const SOURCE_LABELS = {
+      prices_daily: "From the daily close series",
+      factors_daily: "From the supplied factor feed",
+      seasonality: "From monthly seasonality",
+      ratios_asof: "From fundamentals"
+    };
+
+    function escapeHtml(text) {
+      return String(text).replace(/[&<>"']/g, (ch) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[ch]);
+    }
+    function availableMetrics() {
+      return state.meta.catalogue.filter((row) => row.available);
+    }
+    function rankMetrics() {
+      return availableMetrics().filter((row) => row.comparable);
+    }
+    function metricRow(id) {
+      return state.meta.catalogue.find((item) => item.id === id) || null;
+    }
+    function metricLabel(id) {
+      const row = metricRow(id);
+      return row ? row.label : id;
+    }
+    // Grouped by the table the number comes from, so a user can see that a
+    // seasonality condition and a close condition are not the same kind of fact.
+    function metricOptions(selected, comparableOnly) {
+      const rows = comparableOnly ? rankMetrics() : availableMetrics();
+      const groups = new Map();
+      rows.forEach((row) => {
+        const key = row.source_table;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(row);
+      });
+      let html = "";
+      groups.forEach((items, key) => {
+        html += `<optgroup label="${escapeHtml(SOURCE_LABELS[key] || key)}">`;
+        html += items.map((row) => {
+          const mark = row.id === selected ? " selected" : "";
+          return `<option value="${row.id}"${mark}>${escapeHtml(row.label)}</option>`;
+        }).join("");
+        html += "</optgroup>";
+      });
+      return html;
+    }
+    function unitHint(id) {
+      const row = metricRow(id);
+      if (!row) return "";
+      if (row.unit === "ratio") return "percent";
+      if (row.unit === "INR") return "rupees";
+      return row.unit;
+    }
+    function clone(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+    function blankCondition() {
+      return { metric: "return_1y", period: "latest", cmp: ">", value: 0, unit: "percent", enabled: true };
+    }
+    function oppositeJoin(op) {
+      return op === "and" ? "or" : "and";
+    }
+    function normalizeFilter(node) {
+      if (!node) return { op: "and", args: [] };
+      if (node.op && Array.isArray(node.args)) {
+        return {
+          op: node.op === "or" ? "or" : "and",
+          args: node.args.map((child) => {
+            if (child.op && Array.isArray(child.args)) return normalizeFilter(child);
+            const out = {
+              metric: child.metric,
+              period: child.period || "latest",
+              cmp: child.cmp || ">",
+              enabled: child.enabled !== false
+            };
+            if (child.other_metric) out.other_metric = child.other_metric;
+            else {
+              out.value = child.value;
+              if (child.unit) out.unit = child.unit;
+            }
+            return out;
+          })
+        };
+      }
+      return { op: "and", args: [clone(node)] };
+    }
+    function countLeaves(node) {
+      if (!node) return 0;
+      if (node.op && Array.isArray(node.args)) {
+        return node.args.reduce((sum, child) => sum + countLeaves(child), 0);
+      }
+      return 1;
+    }
+    function setOpenStep(name) {
+      document.querySelectorAll(".step").forEach((step) => {
+        step.classList.toggle("open", step.dataset.step === name);
+      });
+    }
+    function updateSummaries() {
+      const universe = $("universe");
+      const selected = universe.options[universe.selectedIndex];
+      $("summary-universe").textContent = selected ? selected.textContent : "Choose who is in the conversation";
+
+      const leaves = countLeaves(state.filter);
+      const join = state.filter.op === "or" ? "any" : "all";
+      $("summary-conditions").textContent = leaves
+        ? leaves + " condition" + (leaves === 1 ? "" : "s") + ", match " + join
+        : "No conditions yet";
+
+      const parts = state.rank.map((clause) => {
+        const dir = clause.dir === "asc" ? "smallest first" : "largest first";
+        return metricLabel(clause.metric) + ", " + dir;
+      });
+      $("summary-ranking").textContent = parts.join("; then ") + ", top " + $("top-n").value;
+    }
+    function syncRootJoinButtons() {
+      $("root-and").classList.toggle("active", state.filter.op === "and");
+      $("root-or").classList.toggle("active", state.filter.op === "or");
+    }
+
+    function cmpOptions(selected, allowNotEqual) {
+      const vals = [">", ">=", "<", "<=", "="];
+      if (allowNotEqual) vals.push("!=");
+      return vals.map((v) => {
+        const mark = v === selected ? " selected" : "";
+        return `<option value="${v}"${mark}>${CMP_WORDS[v]}</option>`;
+      }).join("");
+    }
+
+    function conditionHtml(cond, path) {
+      const pathAttr = path.join(".");
+      const cmp = cond.cmp || ">";
+      const ignored = cond.enabled === false ? " checked" : "";
+      const compare = Boolean(cond.other_metric);
+      const right = compare
+        ? `<select class="other" data-field="other_metric">${metricOptions(cond.other_metric, false)}</select>
+           <span class="unit-hint">metric</span>`
+        : `<input class="value" type="number" step="any" value="${cond.value === undefined || cond.value === null ? "" : cond.value}" data-field="value">
+           <span class="unit-hint">${escapeHtml(unitHint(cond.metric))}</span>`;
+      return `<div class="cond" data-path="${pathAttr}">
+        <div class="cond-top"><select class="metric" data-field="metric">${metricOptions(cond.metric, false)}</select></div>
+        <div class="cond-bottom">
+          <select class="cmp" data-field="cmp">${cmpOptions(cmp, !compare)}</select>
+          ${right}
+        </div>
+        <div class="group-actions">
+          <button type="button" class="link" data-action="toggle-compare">${compare ? "compare to a number" : "compare to another metric"}</button>
+          <label class="inline"><input type="checkbox" class="off" data-field="enabled"${ignored}> ignore</label>
+          <button type="button" class="link" data-action="remove">remove</button>
+        </div>
+      </div>`;
+    }
+
+    function groupHtml(node, path) {
+      const pathAttr = path.join(".");
+      const joinWord = node.op === "or" ? "OR" : "AND";
+      const children = (node.args || []).map((child, index) => {
+        const childPath = path.concat([index]);
+        const body = child.op ? groupHtml(child, childPath) : conditionHtml(child, childPath);
+        return (index === 0 ? "" : `<div class="join-label">${joinWord}</div>`) + body;
+      }).join("");
+      const nestedLabel = oppositeJoin(node.op) === "or" ? "match any" : "match all";
+      return `<div class="group" data-path="${pathAttr}">
+        <div class="group-head">
+          <strong>Group, match ${node.op === "or" ? "any" : "all"}</strong>
+          <button type="button" class="link" data-action="remove">remove group</button>
+        </div>
+        <div class="cond-list">${children || "<p class='hint'>Empty group. Add a condition.</p>"}</div>
+        <div class="group-actions">
+          <button type="button" class="link" data-action="add-condition">add condition</button>
+          <button type="button" class="link" data-action="toggle-join">switch to ${nestedLabel}</button>
+        </div>
+      </div>`;
+    }
+
+    function renderFilter() {
+      const root = state.filter;
+      const joinWord = root.op === "or" ? "OR" : "AND";
+      const children = (root.args || []).map((child, index) => {
+        const path = [index];
+        const body = child.op ? groupHtml(child, path) : conditionHtml(child, path);
+        return (index === 0 ? "" : `<div class="join-label">${joinWord}</div>`) + body;
+      }).join("");
+      $("conditions").innerHTML = children
+        || "<p class='hint'>No conditions. Everyone in the universe stays until you add one.</p>";
+      syncRootJoinButtons();
+      updateSummaries();
+    }
+
+    function renderRank() {
+      $("rank-list").innerHTML = state.rank.map((clause, index) => {
+        const weightField = state.rank.length > 1
+          ? `<label class="inline">weight
+               <input class="rank-weight" type="number" step="any" min="0" value="${clause.weight === undefined ? 1 : clause.weight}">
+             </label>`
+          : "";
+        const removeBtn = state.rank.length > 1
+          ? `<button type="button" class="link" data-action="remove-rank">remove</button>`
+          : "";
+        return `<div class="cond" data-rank="${index}">
+          <div class="cond-top"><select class="rank-metric">${metricOptions(clause.metric, true)}</select></div>
+          <div class="cond-bottom">
+            <select class="rank-dir">
+              <option value="desc"${clause.dir !== "asc" ? " selected" : ""}>largest first</option>
+              <option value="asc"${clause.dir === "asc" ? " selected" : ""}>smallest first</option>
+            </select>
+          </div>
+          <div class="group-actions">${weightField}${removeBtn}</div>
+        </div>`;
+      }).join("");
+      $("add-rank").hidden = state.rank.length >= 3;
+      updateSummaries();
+    }
+
+    function nodeAt(path) {
+      if (!path.length) return { parent: null, index: -1, node: state.filter };
+      let parent = state.filter;
+      for (let i = 0; i < path.length - 1; i += 1) {
+        parent = parent.args[path[i]];
+      }
+      const index = path[path.length - 1];
+      return { parent, index, node: parent.args[index] };
+    }
+    function parsePath(text) {
+      if (!text) return [];
+      return text.split(".").map((part) => Number(part));
+    }
+
+    function readNodeFromDom(el) {
+      const other = el.querySelector(".other");
+      const cond = {
+        metric: el.querySelector(".metric").value,
+        period: "latest",
+        cmp: el.querySelector(".cmp").value,
+        enabled: !el.querySelector(".off").checked
+      };
+      if (other) {
+        cond.other_metric = other.value;
+      } else {
+        cond.value = Number(el.querySelector(".value").value);
+        const row = metricRow(cond.metric);
+        // The field shows percent for a ratio metric. The engine converts it.
+        if (row && row.unit === "ratio") cond.unit = "percent";
+      }
+      return cond;
+    }
+    function syncFilterFromDom() {
+      document.querySelectorAll("#conditions .cond").forEach((el) => {
+        const path = parsePath(el.dataset.path);
+        const { parent, index } = nodeAt(path);
+        if (!parent) return;
+        parent.args[index] = readNodeFromDom(el);
+      });
+    }
+    function syncRankFromDom() {
+      document.querySelectorAll("#rank-list .cond").forEach((el) => {
+        const index = Number(el.dataset.rank);
+        const weight = el.querySelector(".rank-weight");
+        state.rank[index] = {
+          metric: el.querySelector(".rank-metric").value,
+          dir: el.querySelector(".rank-dir").value,
+          weight: weight ? Number(weight.value) : 1
+        };
+      });
+    }
+
+    function fillStudy(study) {
+      state.studyId = study.study_id;
+      const query = study.query;
+      $("universe").value = query.universe.set;
+      state.filter = normalizeFilter(query.filter);
+      const by = (query.rank && query.rank.by) || [];
+      state.rank = by.length
+        ? by.map((item) => ({ metric: item.metric, dir: item.dir || "desc", weight: item.weight === undefined ? 1 : item.weight }))
+        : [{ metric: "return_1y", dir: "desc", weight: 1 }];
+      $("top-n").value = query.rank && query.rank.top_n ? query.rank.top_n : 30;
+      document.querySelectorAll("#studies button").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.id === study.study_id);
+      });
+      renderFilter();
+      renderRank();
+      setOpenStep("conditions");
+    }
+
+    function buildQuery() {
+      syncFilterFromDom();
+      syncRankFromDom();
+      const query = {
+        universe: { set: $("universe").value },
+        as_of: "latest",
+        rank: {
+          by: state.rank.map((clause) => ({
+            metric: clause.metric,
+            dir: clause.dir,
+            weight: clause.weight === undefined ? 1 : clause.weight
+          })),
+          top_n: Number($("top-n").value)
+        }
+      };
+      if (state.filter.args && state.filter.args.length) {
+        query.filter = clone(state.filter);
+      }
+      return query;
+    }
+
+    function instrumentHref(exchange, symbol) {
+      return "/instrument/" + encodeURIComponent(exchange) + "/" + encodeURIComponent(symbol);
+    }
+    function signClass(value) {
+      if (typeof value !== "number") return "";
+      return value > 0 ? "up" : value < 0 ? "down" : "";
+    }
+
+    async function run() {
+      $("error").textContent = "";
+      $("body").innerHTML = "";
+      $("head").innerHTML = "";
+      updateSummaries();
+      const response = await fetch("/api/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildQuery())
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        $("error").textContent = data.error || "Query refused.";
+        $("counts").innerHTML = "";
+        $("readback").textContent = "";
+        $("disclaimer").textContent = "";
+        $("attr").textContent = "";
+        $("asof").textContent = "";
+        return;
+      }
+      $("counts").innerHTML = `
+        <div class="stat"><label>passed</label><b>${data.passed}</b></div>
+        <div class="stat"><label>had no value</label><b>${data.had_no_value}</b></div>
+        <div class="stat"><label>removed</label><b>${data.removed}</b></div>
+        <div class="stat"><label>in universe</label><b>${data.universe_size}</b></div>`;
+      $("asof").textContent = "As of " + data.as_of + ". Every number is computed in Python.";
+      $("readback").textContent = data.read_back;
+      $("disclaimer").textContent = data.disclaimer;
+      const attribution = (data.attribution || []).filter((item) => item.removed || item.had_no_value);
+      $("attr").textContent = attribution.map((item) => {
+        return item.label + ": removed " + item.removed + ", had no value " + item.had_no_value;
+      }).join(" · ");
+      const metrics = data.used_metrics || [];
+      $("head").innerHTML = "<tr><th class='num'>Rank</th><th>Symbol</th><th>Exchange</th><th>Name</th>"
+        + metrics.map((id) => `<th class="num">${escapeHtml(metricLabel(id))}</th>`).join("")
+        + "</tr>";
+      $("body").innerHTML = (data.rows || []).map((row) => {
+        const cells = metrics.map((id) => {
+          const shown = (row.display || {})[id];
+          const cls = ["num", signClass(row[id])].filter(Boolean).join(" ");
+          if (shown === null || shown === undefined) return `<td class="num muted">had no value</td>`;
+          return `<td class="${cls}">${escapeHtml(shown)}</td>`;
+        }).join("");
+        return `<tr>
+          <td class="num">${row.rank}</td>
+          <td class="code"><a href="${instrumentHref(row.exchange, row.symbol)}">${escapeHtml(row.symbol)}</a></td>
+          <td>${escapeHtml(row.exchange)}</td>
+          <td>${escapeHtml(row.name || "")}</td>
+          ${cells}
+        </tr>`;
+      }).join("");
+    }
+
+    function addConditionTo(path) {
+      syncFilterFromDom();
+      const target = path.length ? nodeAt(path).node : state.filter;
+      if (!target.op) return;
+      target.args.push(blankCondition());
+      renderFilter();
+    }
+    function addGroupTo(path) {
+      syncFilterFromDom();
+      const parent = path.length ? nodeAt(path).node : state.filter;
+      if (!parent.op) return;
+      parent.args.push({ op: oppositeJoin(parent.op), args: [blankCondition(), blankCondition()] });
+      renderFilter();
+    }
+    function removeAt(path) {
+      syncFilterFromDom();
+      if (!path.length) return;
+      const { parent, index } = nodeAt(path);
+      parent.args.splice(index, 1);
+      renderFilter();
+    }
+    function toggleJoinAt(path) {
+      syncFilterFromDom();
+      const target = path.length ? nodeAt(path).node : state.filter;
+      if (!target.op) return;
+      target.op = oppositeJoin(target.op);
+      renderFilter();
+    }
+    function toggleCompareAt(path) {
+      syncFilterFromDom();
+      const { node } = nodeAt(path);
+      if (node.other_metric) {
+        delete node.other_metric;
+        node.value = 0;
+        const row = metricRow(node.metric);
+        if (row && row.unit === "ratio") node.unit = "percent";
+      } else {
+        delete node.value;
+        delete node.unit;
+        node.other_metric = node.metric;
+      }
+      renderFilter();
+    }
+
+    $("steps").addEventListener("click", (event) => {
+      const toggle = event.target.closest("[data-toggle]");
+      if (toggle) { setOpenStep(toggle.dataset.toggle); return; }
+      const next = event.target.closest("[data-next]");
+      if (next) { setOpenStep(next.dataset.next); }
+    });
+    $("conditions").addEventListener("click", (event) => {
+      const actionEl = event.target.closest("[data-action]");
+      if (!actionEl) return;
+      const host = actionEl.closest("[data-path]");
+      const path = host ? parsePath(host.dataset.path) : [];
+      const action = actionEl.dataset.action;
+      if (action === "remove") removeAt(path);
+      if (action === "add-condition") addConditionTo(path);
+      if (action === "add-group") addGroupTo(path);
+      if (action === "toggle-join") toggleJoinAt(path);
+      if (action === "toggle-compare") toggleCompareAt(path);
+    });
+    // A metric change can change the unit on the value field, so the row is
+    // redrawn rather than left showing the wrong unit.
+    $("conditions").addEventListener("change", (event) => {
+      syncFilterFromDom();
+      if (event.target.classList.contains("metric")) renderFilter();
+      else updateSummaries();
+    });
+    $("rank-list").addEventListener("click", (event) => {
+      const actionEl = event.target.closest("[data-action='remove-rank']");
+      if (!actionEl) return;
+      syncRankFromDom();
+      state.rank.splice(Number(actionEl.closest("[data-rank]").dataset.rank), 1);
+      renderRank();
+    });
+    $("rank-list").addEventListener("change", () => { syncRankFromDom(); renderRank(); });
+    $("add-rank").addEventListener("click", () => {
+      syncRankFromDom();
+      const used = state.rank.map((clause) => clause.metric);
+      const next = rankMetrics().find((row) => !used.includes(row.id));
+      const share = 1 / (state.rank.length + 1);
+      state.rank.forEach((clause) => { clause.weight = share; });
+      state.rank.push({ metric: next ? next.id : state.rank[0].metric, dir: "desc", weight: share });
+      renderRank();
+    });
+
+    $("root-and").addEventListener("click", () => { syncFilterFromDom(); state.filter.op = "and"; renderFilter(); });
+    $("root-or").addEventListener("click", () => { syncFilterFromDom(); state.filter.op = "or"; renderFilter(); });
+    $("add-condition").addEventListener("click", () => addConditionTo([]));
+    $("add-group").addEventListener("click", () => addGroupTo([]));
+    $("universe").addEventListener("change", updateSummaries);
+    $("top-n").addEventListener("input", updateSummaries);
+    $("run").addEventListener("click", () => { run(); });
+
+    $("lookup").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      $("lookup-error").textContent = "";
+      const q = $("lookup-q").value.trim();
+      if (!q) return;
+      const response = await fetch("/api/lookup?q=" + encodeURIComponent(q));
+      const data = await response.json();
+      const rows = data.matches || [];
+      if (!rows.length) {
+        $("lookup-error").textContent = "No instrument matches that text.";
+        return;
+      }
+      window.location.href = instrumentHref(rows[0].exchange, rows[0].symbol);
+    });
+
+    function renderStudies(filterText) {
+      const text = (filterText || "").trim().toLowerCase();
+      const matches = state.meta.studies.filter((study) => {
+        if (!text) return true;
+        return (study.title + " " + study.idea + " " + study.shelf).toLowerCase().includes(text);
+      });
+      if (!matches.length) {
+        $("studies").innerHTML = "<p class='hint'>No study matches that text.</p>";
+        return;
+      }
+      const shelves = new Map();
+      matches.forEach((study) => {
+        if (!shelves.has(study.shelf)) shelves.set(study.shelf, []);
+        shelves.get(study.shelf).push(study);
+      });
+      let html = "";
+      shelves.forEach((items, shelf) => {
+        html += `<p class="eyebrow eyebrow-plain">${escapeHtml(shelf)}</p>`;
+        html += items.map((study) => {
+          const active = study.study_id === state.studyId ? " active" : "";
+          return `<button type="button" class="quiet${active}" data-id="${study.study_id}">
+            <strong>${escapeHtml(study.title)}</strong>
+            <small>${escapeHtml(study.idea)}</small>
+            <span class="study-author">${escapeHtml(study.author)}</span>
+          </button>`;
+        }).join("");
+      });
+      $("studies").innerHTML = html;
+    }
+
+    fetch("/api/meta").then((res) => res.json()).then((meta) => {
+      state.meta = meta;
+      $("universe").innerHTML = meta.universes.map((row) => {
+        return `<option value="${row.universe_id}">${escapeHtml(row.name)}</option>`;
+      }).join("");
+      $("studies").addEventListener("click", (event) => {
+        const btn = event.target.closest("button[data-id]");
+        if (!btn) return;
+        const study = meta.studies.find((item) => item.study_id === btn.dataset.id);
+        fillStudy(study);
+        renderStudies($("study-search").value);
+        run();
+      });
+      $("study-search").addEventListener("input", () => renderStudies($("study-search").value));
+      fillStudy(meta.studies[0]);
+      renderStudies("");
+      run();
+    });
+  </script>
+</body>
+</html>

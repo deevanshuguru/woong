@@ -1,0 +1,6 @@
+instrument_token,exchange_token,tradingsymbol,name,last_price,expiry,strike,tick_size,lot_size,instrument_type,segment,exchange
+101,1,AAA,Alpha Co,0,,,0.05,1,EQ,NSE,NSE
+102,2,BBB,Beta ETF,0,,,0.05,1,EQ,NSE,NSE
+103,3,ZZZ,Other Co,0,,,0.05,1,EQ,NSE,NSE
+201,4,AAA,Alpha BSE,0,,,0.05,1,EQ,BSE,BSE
+301,5,NIFTY,Nifty,0,,,0.05,1,EQ,NSE,NSE

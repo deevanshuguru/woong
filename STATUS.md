@@ -20,10 +20,21 @@ the list.
 
 ## Where we are
 
-**Doing: W1.** Canonical warehouse schema and the metric catalogue.
+**Doing: W2.** One-time broker OHLCV backfill for every stock and
+exchange-traded fund (ETF): `broker_instruments` map plus full-history daily
+bars into `prices_daily` with `source = broker`. Evening cron is not this
+slice.
 
-W0 is done. Nothing is shippable yet. There is no data in the warehouse, so
-there is no stock list.
+Broker auth matches the headless login used elsewhere: password, one-time
+password, then connect on the **login** host (not the market-data host). Token
+file: `data/.broker_token`, fresh against the 06:00 India Standard Time (IST)
+daily reset. Check with `python -m woong.ingest.broker_auth --check`, then
+`python -m woong.ingest.broker harvest-all`.
+
+W0, W1, W3 and W4 exist: schema, catalogue, engine and desktop screen.
+
+Weight, backtest and live orders are still off. Price to Earnings (P/E), fall
+from the 52-week high, and index membership are still off.
 
 ## The product path
 
@@ -51,6 +62,9 @@ interface, no charts and no live orders in this slice.
 | 2026-09-13 | Natural language to query translation is phase two. The structured interface ships first, and both compile to the same query object. |
 | 2026-09-13 | A missing value never passes a filter and never counts as a failure. It is reported separately. |
 | 2026-09-13 | Every change starts from an issue and lands through a pull request. Nothing is committed to `main` directly. |
+| 2026-09-13 | An instrument is a stock, an exchange-traded fund (ETF), or an index. The primary master maps market, sector, thematic and strategy series onto `index` and keeps the feed split in `index_class`. |
+| 2026-09-13 | Broker daily bars are the continuous adjusted session series. They live in `prices_daily` with `source = broker` and take precedence in the snapshot over primary closes. |
+| 2026-09-13 | Until a session high is in the warehouse, fall from the 52-week high stays off. A fall from the highest close is not the 52-week high. |
 
 ## Pending, not this slice
 

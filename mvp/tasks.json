@@ -1,16 +1,18 @@
 {
   "updated": "2026-09-13",
   "this_page": "Builder work list. Not the product. An end user should never open this.",
-  "user_gets_today": "Nothing they can use. The warehouse is empty, so there is no stock list.",
+  "user_gets_today": "A local desktop screen at http://127.0.0.1:8765. Next locked job: one-time broker OHLCV backfill for all stocks and ETFs.",
   "user_gets_when_ready": "A desktop screen. On the left they pick a universe, add conditions and choose a ranking. On the right they get the stocks that match, ranked, with the count that passed and the count that had no value. Plus a few named study blocks to start from. No advice, no forecast.",
-  "one_thing": "Rules in, stocks out: universe, filter, rank on real data, shown on one desktop screen.",
-  "why": "A short-term investor does not lack filters. They lack the next question worth asking, and every tool hands them knobs instead of an answer.",
+  "one_thing": "One-time broker daily OHLCV backfill into prices_daily, with broker_instruments map, resumable and idempotent.",
+  "why": "Scanner and later month filters are capped by coverage and by having real open, high, low, close and volume.",
   "not_this_slice": [
+    "Evening cron incremental",
+    "Monthly or weekly derived tables",
+    "Seasonality scanner filters",
     "Natural language queries",
-    "Charts and performance history",
     "Weighting interface",
     "Backtesting",
-    "Broker deployment",
+    "Broker order deployment",
     "Mobile layout",
     "Dark mode",
     "Visual polish",
@@ -28,7 +30,7 @@
     {
       "id": "W1",
       "issue": 2,
-      "status": "doing",
+      "status": "done",
       "date": "2026-09-13",
       "what": "Canonical warehouse schema and the metric catalogue, with reserved slots for weight, backtest and deploy.",
       "why": "The scanner cannot exist before the data has a shape, and the shape has to serve the whole path or we rebuild it."
@@ -36,24 +38,24 @@
     {
       "id": "W2",
       "issue": 3,
-      "status": "later",
-      "date": "",
-      "what": "Complete checkpointed harvest: every symbol and every index, resumable, idempotent.",
-      "why": "Analysis quality is capped by coverage. Fill it once properly, then keep it current cheaply."
+      "status": "doing",
+      "date": "2026-09-13",
+      "what": "One-time broker OHLCV backfill: broker_instruments map plus full-history daily bars for every stock and ETF, resumable and idempotent.",
+      "why": "Official continuous adjusted bars are the store every later return, month table and chart will stand on."
     },
     {
       "id": "W3",
       "issue": 4,
-      "status": "later",
-      "date": "",
+      "status": "done",
+      "date": "2026-09-13",
       "what": "The query engine: universe, nested filter, rank and top N, with attribution for every removal.",
       "why": "This is the product. A rule goes in, a ranked list of real stocks comes out."
     },
     {
       "id": "W4",
       "issue": 5,
-      "status": "later",
-      "date": "",
+      "status": "done",
+      "date": "2026-09-13",
       "what": "Desktop interface: operations on the left, results on the right, study blocks to start from.",
       "why": "The engine is useless to an end user without a screen that does not bombard them."
     }

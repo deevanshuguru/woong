@@ -1,0 +1,39 @@
+{
+  "status": "success",
+  "code": 200,
+  "message": "Retrieved 4 available symbols",
+  "timestamp": "2026-09-13T00:00:00",
+  "data": {
+    "total_symbols": 4,
+    "symbols": [
+      {
+        "symbol": "AAA",
+        "exchange": "NSE",
+        "name": "Example Equity Limited",
+        "type": "stock",
+        "isin": "INE000A01018"
+      },
+      {
+        "symbol": "BBB",
+        "exchange": "NSE",
+        "name": "Example Exchange Traded Fund",
+        "type": "etf",
+        "isin": "INF000B01018"
+      },
+      {
+        "symbol": "IDX50",
+        "exchange": "NSE",
+        "name": "Example Market Index",
+        "type": "market",
+        "isin": null
+      },
+      {
+        "symbol": "IDXIT",
+        "exchange": "NSE",
+        "name": "Example Sector Index",
+        "type": "sector",
+        "isin": null
+      }
+    ]
+  }
+}

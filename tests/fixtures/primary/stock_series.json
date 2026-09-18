@@ -1,0 +1,50 @@
+{
+  "status": "success",
+  "code": 200,
+  "message": "Retrieved 3 records for AAA",
+  "timestamp": "2026-09-13T00:00:00",
+  "data": {
+    "symbol": "AAA",
+    "total_records": 3,
+    "columns": ["date", "close", "return1D"],
+    "date_range": {"min_date": "2026-09-09T00:00:00", "max_date": "2026-09-11T00:00:00"},
+    "data": [
+      {
+        "symbol": "AAA",
+        "date": "2026-09-09T00:00:00",
+        "close": 100.0,
+        "return1D": null,
+        "return1W": null,
+        "return1M": null,
+        "return3M": null,
+        "return1Y": null,
+        "return3Y": null,
+        "return5Y": null
+      },
+      {
+        "symbol": "AAA",
+        "date": "2026-09-10T00:00:00",
+        "close": 110.0,
+        "return1D": 0.1,
+        "return1W": null,
+        "return1M": null,
+        "return3M": null,
+        "return1Y": null,
+        "return3Y": null,
+        "return5Y": null
+      },
+      {
+        "symbol": "AAA",
+        "date": "2026-09-11T00:00:00",
+        "close": 121.0,
+        "return1D": 0.1,
+        "return1W": null,
+        "return1M": null,
+        "return3M": null,
+        "return1Y": null,
+        "return3Y": null,
+        "return5Y": null
+      }
+    ]
+  }
+}
