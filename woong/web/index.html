@@ -134,7 +134,8 @@
       "<": "is below",
       "<=": "is at most",
       "=": "equals",
-      "!=": "does not equal"
+      "!=": "does not equal",
+      "between": "is between"
     };
     const SOURCE_LABELS = {
       prices_daily: "From the daily close series",
@@ -160,6 +161,8 @@
       return state.meta.catalogue.find((item) => item.id === id) || null;
     }
     function metricLabel(id) {
+      if (id.startsWith("_dyn_return_")) return "Return · " + id.replace("_dyn_return_", "");
+      if (id.startsWith("_dyn_sma_")) return "Moving Avg · " + id.replace("_dyn_sma_", "");
       const row = metricRow(id);
       return row ? row.label : id;
     }
@@ -213,7 +216,8 @@
               cmp: child.cmp || ">",
               enabled: child.enabled !== false
             };
-            if (child.other_metric) out.other_metric = child.other_metric;
+            if (child.window) out.window = child.window;
+            if (child.other_metric) { out.other_metric = child.other_metric; if (child.other_window) out.other_window = child.other_window; }
             else {
               out.value = child.value;
               if (child.unit) out.unit = child.unit;
@@ -249,7 +253,7 @@
 
       const parts = state.rank.map((clause) => {
         const dir = clause.dir === "asc" ? "smallest first" : "largest first";
-        return metricLabel(clause.metric) + ", " + dir;
+        let lbl = metricLabel(clause.metric); if (clause.window) lbl += " · " + clause.window.n + clause.window.unit; return lbl + ", " + dir;
       });
       $("summary-ranking").textContent = parts.join("; then ") + ", top " + $("top-n").value;
     }
@@ -259,7 +263,7 @@
     }
 
     function cmpOptions(selected, allowNotEqual) {
-      const vals = [">", ">=", "<", "<=", "="];
+      const vals = [">", ">=", "<", "<=", "=", "between"];
       if (allowNotEqual) vals.push("!=");
       return vals.map((v) => {
         const mark = v === selected ? " selected" : "";
@@ -268,29 +272,59 @@
     }
 
     function conditionHtml(cond, path) {
-      const pathAttr = path.join(".");
-      const cmp = cond.cmp || ">";
-      const ignored = cond.enabled === false ? " checked" : "";
-      const compare = Boolean(cond.other_metric);
-      const right = compare
-        ? `<select class="other" data-field="other_metric">${metricOptions(cond.other_metric, false)}</select>
-           <span class="unit-hint">metric</span>`
-        : `<input class="value" type="number" step="any" value="${cond.value === undefined || cond.value === null ? "" : cond.value}" data-field="value">
-           <span class="unit-hint">${escapeHtml(unitHint(cond.metric))}</span>`;
-      return `<div class="cond" data-path="${pathAttr}">
-        <div class="cond-top"><select class="metric" data-field="metric">${metricOptions(cond.metric, false)}</select></div>
+    const pathAttr = path.join(".");
+    const metric  = cond.metric || "return";
+    const isParam = PARAMETRIC_METRICS.has(metric);
+    const win     = cond.window || { n: 1, unit: "Y" };
+    const cmp     = cond.cmp || ">";
+    const isBetween = cmp === "between";
+    const ignored = cond.enabled === false ? " checked" : "";
+    const compare = Boolean(cond.other_metric);
+    const periodRow = isParam
+      ? `<div class="cond-period"><span class="unit-hint">over</span>
+          <input class="window-n" type="number" min="1" step="1" value="${win.n}">
+          <select class="window-unit">
+            <option value="D"${win.unit === "D" ? " selected" : ""}>days</option>
+            <option value="W"${win.unit === "W" ? " selected" : ""}>weeks</option>
+            <option value="M"${win.unit === "M" ? " selected" : ""}>months</option>
+            <option value="Y"${win.unit === "Y" ? " selected" : ""}>years</option>
+          </select></div>`
+      : "";
+    const hint = isParam ? "percent" : escapeHtml(unitHint(metric));
+    let right;
+    if (compare) {
+      right = `<select class="other" data-field="other_metric">${metricOptions(cond.other_metric, false)}</select>
+               <span class="unit-hint">metric</span>`;
+    } else if (isBetween) {
+      const lo = Array.isArray(cond.value) ? (cond.value[0] !== null && cond.value[0] !== undefined ? cond.value[0] : "") : "";
+      const hi = Array.isArray(cond.value) ? (cond.value[1] !== null && cond.value[1] !== undefined ? cond.value[1] : "") : "";
+      right = `<input class="value value-low" type="number" step="any" value="${lo}" style="width:75px">
+               <span class="unit-hint">and</span>
+               <input class="value value-high" type="number" step="any" value="${hi}" style="width:75px">
+               <span class="unit-hint">${hint}</span>`;
+    } else {
+      const val = Array.isArray(cond.value) ? cond.value[0] : cond.value;
+      right = `<input class="value" type="number" step="any" value="${val === undefined || val === null ? "" : val}" data-field="value">
+               <span class="unit-hint">${hint}</span>`;
+    }
+    const compareLink = !isBetween
+      ? `<button type="button" class="link" data-action="toggle-compare">${compare ? "compare to a number" : "compare to another metric"}</button>`
+      : "";
+    return `<div class="cond" data-path="${pathAttr}">
+        <div class="cond-top"><select class="metric" data-field="metric">${metricOptions(metric, false)}</select></div>
+        ${periodRow}
         <div class="cond-bottom">
           <select class="cmp" data-field="cmp">${cmpOptions(cmp, !compare)}</select>
           ${right}
         </div>
         <div class="group-actions">
-          <button type="button" class="link" data-action="toggle-compare">${compare ? "compare to a number" : "compare to another metric"}</button>
+          ${compareLink}
           <label class="inline"><input type="checkbox" class="off" data-field="enabled"${ignored}> ignore</label>
           <button type="button" class="link" data-action="remove">remove</button>
         </div>
       </div>`;
-    }
-
+  }
+  
     function groupHtml(node, path) {
       const pathAttr = path.join(".");
       const joinWord = node.op === "or" ? "OR" : "AND";
@@ -367,23 +401,33 @@
     }
 
     function readNodeFromDom(el) {
-      const other = el.querySelector(".other");
-      const cond = {
-        metric: el.querySelector(".metric").value,
-        period: "latest",
-        cmp: el.querySelector(".cmp").value,
-        enabled: !el.querySelector(".off").checked
-      };
-      if (other) {
-        cond.other_metric = other.value;
-      } else {
-        cond.value = Number(el.querySelector(".value").value);
-        const row = metricRow(cond.metric);
-        // The field shows percent for a ratio metric. The engine converts it.
-        if (row && row.unit === "ratio") cond.unit = "percent";
-      }
-      return cond;
+    const other   = el.querySelector(".other");
+    const metric  = el.querySelector(".metric").value;
+    const cmp     = el.querySelector(".cmp") ? el.querySelector(".cmp").value : ">";
+    const isParam = PARAMETRIC_METRICS.has(metric);
+    const cond    = { metric, period: "latest", cmp, enabled: !el.querySelector(".off").checked };
+    const nEl    = el.querySelector(".window-n");
+    const unitEl = el.querySelector(".window-unit");
+    if (isParam && nEl && unitEl) {
+      cond.window = { n: parseInt(nEl.value) || 1, unit: unitEl.value };
     }
+    const row     = metricRow(metric);
+    const isRatio = isParam || (row && row.unit === "ratio");
+    if (other) {
+      cond.other_metric = other.value;
+    } else if (cmp === "between") {
+      const lo = el.querySelector(".value-low");
+      const hi = el.querySelector(".value-high");
+      cond.value = [lo ? Number(lo.value) : 0, hi ? Number(hi.value) : 0];
+      if (isRatio) cond.unit = "percent";
+    } else {
+      const valEl = el.querySelector(".value");
+      cond.value = valEl ? Number(valEl.value) : 0;
+      if (isRatio) cond.unit = "percent";
+    }
+    return cond;
+  }
+  
     function syncFilterFromDom() {
       document.querySelectorAll("#conditions .cond").forEach((el) => {
         const path = parsePath(el.dataset.path);
@@ -410,9 +454,7 @@
       $("universe").value = query.universe.set;
       state.filter = normalizeFilter(query.filter);
       const by = (query.rank && query.rank.by) || [];
-      state.rank = by.length
-        ? by.map((item) => ({ metric: item.metric, dir: item.dir || "desc", weight: item.weight === undefined ? 1 : item.weight }))
-        : [{ metric: "return_1y", dir: "desc", weight: 1 }];
+      state.rank = by.length ? by.map((item) => ({ metric: item.metric, window: item.window || null, dir: item.dir || "desc", weight: item.weight === undefined ? 1 : item.weight })) : [{ metric: "return", window: { n: 1, unit: "Y" }, dir: "desc", weight: 1 }];
       $("top-n").value = query.rank && query.rank.top_n ? query.rank.top_n : 30;
       document.querySelectorAll("#studies button").forEach((btn) => {
         btn.classList.toggle("active", btn.dataset.id === study.study_id);
@@ -564,8 +606,7 @@
     // redrawn rather than left showing the wrong unit.
     $("conditions").addEventListener("change", (event) => {
       syncFilterFromDom();
-      if (event.target.classList.contains("metric")) renderFilter();
-      else updateSummaries();
+      if (event.target.classList.contains("metric") || event.target.classList.contains("cmp") || event.target.classList.contains("window-unit")) renderFilter(); else updateSummaries();
     });
     $("rank-list").addEventListener("click", (event) => {
       const actionEl = event.target.closest("[data-action='remove-rank']");
