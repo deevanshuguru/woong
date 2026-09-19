@@ -163,6 +163,8 @@
     function metricLabel(id) {
       if (id.startsWith("_dyn_return_")) return "Return · " + id.replace("_dyn_return_", "");
       if (id.startsWith("_dyn_sma_")) return "Moving Avg · " + id.replace("_dyn_sma_", "");
+      if (id.startsWith("_dyn_return_")) return "Return · " + id.replace("_dyn_return_", "");
+      if (id.startsWith("_dyn_sma_")) return "Moving Avg · " + id.replace("_dyn_sma_", "");
       const row = metricRow(id);
       return row ? row.label : id;
     }
@@ -293,7 +295,20 @@
     const hint = isParam ? "percent" : escapeHtml(unitHint(metric));
     let right;
     if (compare) {
-      right = `<select class="other" data-field="other_metric">${metricOptions(cond.other_metric, false)}</select>
+      const otherM = cond.other_metric || "";
+    const isOtherParam = PARAMETRIC_METRICS.has(otherM);
+    const otherW = cond.other_window || { n: 200, unit: "D" };
+    const otherPeriod = isOtherParam
+      ? `<span class="unit-hint">over</span>
+          <input class="other-window-n" type="number" min="1" step="1" value="${otherW.n}" style="width:55px">
+          <select class="other-window-unit">
+            <option value="D"${otherW.unit==="D"?" selected":""}>days</option>
+            <option value="W"${otherW.unit==="W"?" selected":""}>weeks</option>
+            <option value="M"${otherW.unit==="M"?" selected":""}>months</option>
+            <option value="Y"${otherW.unit==="Y"?" selected":""}>years</option>
+          </select>` : "";
+    right = `<select class="other" data-field="other_metric">${metricOptions(otherM, false)}</select>
+             ${otherPeriod}
                <span class="unit-hint">metric</span>`;
     } else if (isBetween) {
       const lo = Array.isArray(cond.value) ? (cond.value[0] !== null && cond.value[0] !== undefined ? cond.value[0] : "") : "";
@@ -415,6 +430,11 @@
     const isRatio = isParam || (row && row.unit === "ratio");
     if (other) {
       cond.other_metric = other.value;
+      if (PARAMETRIC_METRICS.has(other.value)) {
+        const onEl = el.querySelector('.other-window-n');
+        const ouEl = el.querySelector('.other-window-unit');
+        if (onEl && ouEl) cond.other_window = { n: parseInt(onEl.value) || 1, unit: ouEl.value };
+      }
     } else if (cmp === "between") {
       const lo = el.querySelector(".value-low");
       const hi = el.querySelector(".value-high");
