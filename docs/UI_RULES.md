@@ -85,3 +85,17 @@ Violating a rule here is a bug, not a style choice.
   checkboxes, reset link.
 - Card layout: name first with rank inside ("#1 Name"); chip row after name
   with volatility chip first; provider line after chips.
+
+## v4 additions — basket universe diversity
+
+- 20 baskets follow the smallcase/Windmill Capital taxonomy: asset
+  allocation, smart beta / quant trackers, factor models, sector trackers,
+  group (House of X) trackers, and themes.
+- New rule-condition kinds: Tracker (violet) for index/group/sector
+  membership, Allocation (teal) for asset-class splits and defensive tilts.
+- Every basket carries: a real universe definition, a rule tree, a
+  weighting scheme in the Rank row, and at least one liquidity guard.
+- Sector trackers weight by free-float market cap with caps; thematic
+  baskets weight by their theme metric; asset-allocation baskets state
+  their equity/gold split as an Allocation condition with an IF/THEN
+  defensive tilt.

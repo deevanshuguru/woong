@@ -8,24 +8,16 @@
 </head>
 <body>
   <div class="app">
-    <aside class="left">
+    <header class="top">
       <div class="brand">
         <h1>Woong</h1>
         <span class="source-tag">desk</span>
       </div>
-      <p class="pane-note">A rule in. A ranked list out. The list is what the rule returns today.</p>
-
-      <p class="eyebrow">Open one name</p>
-      <form id="lookup" class="lookup">
-        <input id="lookup-q" type="text" spellcheck="false" placeholder="Symbol or name" aria-label="Symbol or name">
-        <button type="submit" class="quiet">Open</button>
-      </form>
-      <p id="lookup-error" class="error"></p>
-
-      <p class="eyebrow">Start from a study</p>
-      <input id="study-search" class="study-search" type="text" spellcheck="false" placeholder="Search studies" aria-label="Search studies">
-      <div id="studies" class="studies"></div>
-
+      <p class="tagline">Write a rule. See the stocks that match it, ranked, on real numbers.</p>
+      <p id="asof" class="datastatus"></p>
+    </header>
+    <aside class="left">
+      <p class="eyebrow">Your rule</p>
       <div class="steps" id="steps">
         <section class="step open" data-step="universe">
           <button type="button" class="step-head" data-toggle="universe">
@@ -34,7 +26,7 @@
               <span class="step-title">Universe</span>
               <span class="step-summary" id="summary-universe">Choose who is in the conversation</span>
             </span>
-            <span class="step-chevron" aria-hidden="true">v</span>
+            <span class="step-chevron" aria-hidden="true">▾</span>
           </button>
           <div class="step-body">
             <p class="hint">Filter decides who is in. Ranking comes later.</p>
@@ -52,7 +44,7 @@
               <span class="step-title">Conditions</span>
               <span class="step-summary" id="summary-conditions">No conditions yet</span>
             </span>
-            <span class="step-chevron" aria-hidden="true">v</span>
+            <span class="step-chevron" aria-hidden="true">▾</span>
           </button>
           <div class="step-body">
             <p class="hint">Match all means every condition must pass. Match any means one is enough. A nested group keeps its own join.</p>
@@ -76,7 +68,7 @@
               <span class="step-title">Ranking</span>
               <span class="step-summary" id="summary-ranking">Choose order and how many</span>
             </span>
-            <span class="step-chevron" aria-hidden="true">v</span>
+            <span class="step-chevron" aria-hidden="true">▾</span>
           </button>
           <div class="step-body">
             <p class="hint">Ranking only orders names that already passed the filter. Only a metric that is comparable across companies can be ranked.</p>
@@ -84,7 +76,7 @@
             <div class="step-actions">
               <button type="button" class="quiet" id="add-rank">Add a second measure</button>
             </div>
-            <label class="inline" style="margin-top:var(--space-base)">
+            <label class="inline">
               how many
               <input id="top-n" type="number" min="1" value="30" aria-label="How many rows">
             </label>
@@ -95,13 +87,25 @@
       <div class="run-bar">
         <button type="button" class="primary" id="run">Run the rule</button>
       </div>
+
+      <details class="drawer">
+        <summary>Start from an example</summary>
+        <input id="study-search" class="study-search" type="text" spellcheck="false" placeholder="Search examples" aria-label="Search examples">
+        <div id="studies" class="studies"></div>
+      </details>
+
+      <details class="drawer">
+        <summary>Look up a stock</summary>
+        <form id="lookup" class="lookup">
+          <input id="lookup-q" type="text" spellcheck="false" placeholder="Symbol or name" aria-label="Symbol or name">
+          <button type="submit" class="quiet">Open</button>
+        </form>
+        <p id="lookup-error" class="error"></p>
+      </details>
     </aside>
     <main class="right">
       <div id="counts" class="counts"></div>
-      <p id="asof" class="asof"></p>
       <p id="readback" class="readback"></p>
-      <p id="disclaimer" class="disclaimer"></p>
-      <div id="attr" class="attr"></div>
       <p id="error" class="error"></p>
       <div class="table-wrap">
         <table>
@@ -109,6 +113,7 @@
           <tbody id="body"></tbody>
         </table>
       </div>
+      <p id="disclaimer" class="disclaimer"></p>
     </main>
   </div>
   <script>
@@ -459,27 +464,20 @@
         $("counts").innerHTML = "";
         $("readback").textContent = "";
         $("disclaimer").textContent = "";
-        $("attr").textContent = "";
         $("asof").textContent = "";
         return;
       }
-      $("counts").innerHTML = `
-        <div class="stat"><label>passed</label><b>${data.passed}</b></div>
-        <div class="stat"><label>had no value</label><b>${data.had_no_value}</b></div>
-        <div class="stat"><label>removed</label><b>${data.removed}</b></div>
-        <div class="stat"><label>in universe</label><b>${data.universe_size}</b></div>`;
+      const passed = data.passed || 0;
       const noValue = data.had_no_value || 0;
-      const universe = data.universe_size || 0;
-      const skipped = noValue
-        ? " " + noValue.toLocaleString("en-IN") + " of " + universe.toLocaleString("en-IN") + " stocks skipped: no price history loaded yet."
-        : " All " + universe.toLocaleString("en-IN") + " stocks in the universe have values.";
-      $("asof").textContent = "Prices through " + data.as_of + "." + skipped;
+      const removed = data.removed || 0;
+      const total = data.universe_size || 0;
+      const fmt = (n) => Number(n).toLocaleString("en-IN");
+      $("counts").innerHTML = `<p class="result-line">Of <b>${fmt(total)}</b> stocks scanned, <b class="good">${fmt(passed)}</b> passed your rule, <b>${fmt(removed)}</b> did not meet it, and <b>${fmt(noValue)}</b> have no price history yet.</p>`;
+      $("asof").textContent = noValue
+        ? "Prices through " + data.as_of + " \u00b7 " + fmt(noValue) + " of " + fmt(total) + " stocks still missing history"
+        : "Prices through " + data.as_of + " \u00b7 complete history loaded";
       $("readback").textContent = data.read_back;
       $("disclaimer").textContent = data.disclaimer;
-      const attribution = (data.attribution || []).filter((item) => item.removed || item.had_no_value);
-      $("attr").textContent = attribution.map((item) => {
-        return item.label + ": removed " + item.removed + ", had no value " + item.had_no_value;
-      }).join(" · ");
       const metrics = data.used_metrics || [];
       $("head").innerHTML = "<tr><th class='num'>Rank</th><th>Symbol</th><th>Exchange</th><th>Name</th>"
         + metrics.map((id) => `<th class="num">${escapeHtml(metricLabel(id))}</th>`).join("")
@@ -488,7 +486,7 @@
         const cells = metrics.map((id) => {
           const shown = (row.display || {})[id];
           const cls = ["num", signClass(row[id])].filter(Boolean).join(" ");
-          if (shown === null || shown === undefined) return `<td class="num muted">had no value</td>`;
+          if (shown === null || shown === undefined) return `<td class="num muted" title="No value for this date">—</td>`;
           return `<td class="${cls}">${escapeHtml(shown)}</td>`;
         }).join("");
         return `<tr>

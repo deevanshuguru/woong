@@ -56,6 +56,15 @@ class ScannerHandler(BaseHTTPRequestHandler):
         if path == "/style.css":
             self._send(200, (WEB_DIR / "style.css").read_bytes(), "text/css; charset=utf-8")
             return
+        if path == "/basket-data.js":
+            self._send(200, (WEB_DIR / "basket-data.js").read_bytes(), "text/javascript; charset=utf-8")
+            return
+        if path == "/baskets":
+            self._send(200, (WEB_DIR / "baskets.html").read_bytes(), "text/html; charset=utf-8")
+            return
+        if path.startswith("/basket/"):
+            self._send(200, (WEB_DIR / "basket.html").read_bytes(), "text/html; charset=utf-8")
+            return
         if path.startswith("/instrument/"):
             page = WEB_DIR / "instrument.html"
             self._send(200, page.read_bytes(), "text/html; charset=utf-8")

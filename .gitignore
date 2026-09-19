@@ -38,3 +38,6 @@ dist/
 debug_*.py
 patch_*.py
 repo_inventory.md
+
+*.prev
+manually_added_data/

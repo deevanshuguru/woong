@@ -88,6 +88,15 @@ html[data-theme="dark"] .risk.med { color:#e0a800; }
 .rrow:last-child { border-bottom:0; }
 .rrow .rk { flex:none; width:70px; color:var(--muted); text-transform:uppercase; font-size:10.5px; letter-spacing:.06em; padding-top:1px; }
 .rrow .rv { font-weight:500; font-variant-numeric:tabular-nums; }
+.rg { border-left:2px dotted var(--line2); margin:6px 0 4px 4px; padding-left:12px; }
+.rgl { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.07em;
+  color:var(--muted); margin:2px 0; }
+.rg.ifthen .rgl.then { color:var(--good); }
+.rg.ifthen .rgl.if { color:#9a6b00; }
+.rc { display:flex; align-items:baseline; gap:8px; padding:3px 0; font-size:12.5px; }
+.cbadge { flex:none; font-size:9px; font-weight:600; text-transform:uppercase;
+  letter-spacing:.05em; border:1px solid; border-radius:var(--r-pill); padding:0 7px;
+  min-width:64px; text-align:center; }
 .sparkwrap { position:relative; margin:2px 0; }
 .spark { display:block; width:100%; height:58px; }
 .tip { position:absolute; z-index:2; pointer-events:none; display:none;
@@ -347,14 +356,36 @@ function chipRow(b) {
   });
   return '<div class="tags">' + chips.join("") + "</div>";
 }
-function ruleHTML(rule) {
-  const frow = (k, v) => '<div class="rrow"><span class="rk">' + k + "</span><span class='rv'>" + v + "</span></div>";
-  let html = frow("Universe", rule.universe);
-  rule.filters.forEach((f, i) => {
-    html += frow(i === 0 ? "Filter" : "AND", f);
-  });
-  html += frow("Rank", rule.rank);
-  html += frow("Size", "Top " + rule.top);
+function badgeStyle(kind) {
+  const colors = {
+    Return: "#2456d6", Price: "#7c3aed", Guard: "#b45309", Seasonality: "#0e7490",
+    Streak: "#0a7d33", Period: "#be185d", Fundamental: "#6b7280", Note: "#6b7280",
+    Tracker: "#6d28d9", Allocation: "#0f766e"
+  };
+  const c = colors[kind] || "#6b7280";
+  return 'style="color:' + c + ';border-color:' + c + '"';
+}
+function nodeHTML(node) {
+  if (typeof node === "string") {
+    return '<div class="rc"><span class="cbadge" ' + badgeStyle("Note") + '>Note</span><span>' + node + "</span></div>";
+  }
+  if (node.text) {
+    return '<div class="rc"><span class="cbadge" ' + badgeStyle(node.kind) + ">" + node.kind + "</span><span>" + node.text + "</span></div>";
+  }
+  if (node.op === "ifthen") {
+    return '<div class="rg ifthen">' +
+      '<div class="rgl if">IF any of</div>' + node.if.map(nodeHTML).join("") +
+      '<div class="rgl then">THEN all of</div>' + node.then.map(nodeHTML).join("") +
+      "</div>";
+  }
+  const label = node.op === "all" ? "ALL of" : node.op === "any" ? "ANY of" : "NONE of";
+  return '<div class="rg"><div class="rgl">' + label + "</div>" + node.args.map(nodeHTML).join("") + "</div>";
+}
+function ruleHTML(b) {
+  let html = '<div class="rc"><span class="cbadge" ' + badgeStyle("Universe") + '>Universe</span><span>' + b.universe + "</span></div>";
+  html += nodeHTML(b.rule);
+  html += '<div class="rc"><span class="cbadge" ' + badgeStyle("Rank") + '>Rank</span><span>' + b.rule.rank + "</span></div>";
+  html += '<div class="rc"><span class="cbadge" ' + badgeStyle("Size") + '>Size</span><span>Top ' + b.rule.top + "</span></div>";
   return '<div class="rulebox">' + html + "</div>";
 }
 function cardHTML(b, position) {
@@ -406,7 +437,7 @@ function openQuick(b) {
     '<div class="stat"><span class="k">Since launch</span><span class="v num ' + signedClass(sl.basket) + '">' + fmtPct(sl.basket) + "</span></div>" +
     '<div class="stat"><span class="k">Launch vs Nifty</span><span class="v num ' + signedClass(sl.alpha) + '">' + fmtPct(sl.alpha, true) + "</span></div>" +
     "</div>" +
-    '<p class="plabel">The rule, as the system runs it</p>' + ruleHTML(b.rule) +
+    '<p class="plabel">The rule, as the system runs it</p>' + ruleHTML(b) +
     '<p class="plabel">Top holdings</p><div id="phold"></div>';
   document.getElementById("phold").innerHTML = top.map((s) => {
     const kind = s.kind === "etf" ? " · ETF" : "";
