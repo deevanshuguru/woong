@@ -462,13 +462,21 @@
     }
     function syncRankFromDom() {
       document.querySelectorAll("#rank-list .cond").forEach((el) => {
-        const index = Number(el.dataset.rank);
+        const index  = Number(el.dataset.rank);
         const weight = el.querySelector(".rank-weight");
+        const rm     = el.querySelector(".rank-metric").value;
+        const rnEl   = el.querySelector(".rank-window-n");
+        const ruEl   = el.querySelector(".rank-window-unit");
+        const rwin   = (PARAMETRIC_METRICS.has(rm) && rnEl && ruEl)
+          ? { n: parseInt(rnEl.value) || 1, unit: ruEl.value } : null;
         state.rank[index] = {
-          metric: el.querySelector(".rank-metric").value,
-          dir: el.querySelector(".rank-dir").value,
+          metric: rm,
+          ...(rwin ? { window: rwin } : {}),
+          dir:    el.querySelector(".rank-dir").value,
           weight: weight ? Number(weight.value) : 1
         };
+      });
+    };
       });
     }
 
