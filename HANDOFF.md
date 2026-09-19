@@ -135,13 +135,10 @@ first thing to plan with the human.
 
 ## 9. NEXT STEP (keep this section tiny, complete, and always current)
 
-1. Read files in section 3.
-2. Run the app (`python3 -m woong.api`), look at /, /baskets, /basket/b12.
-3. Ask the human to specify the condition-window upgrade (section 7) —
-   propose a structural plan first, wait for approval.
-4. Land it in commits of one file each with tests passing and sign-off.
-5. Update SESSION_LOG.md and this section when done.
-
+1. python -m woong.ingest.broker_harvest --help -- confirm flags
+2. Run full OHLCV backfill into prices_daily (W2)
+3. Verify row count in prices_daily via DuckDB
+4. Then: condition-window UI upgrade (plan approved)
 ---
 
 *Written by the previous agent session. Human: Deevanshu. Repo:

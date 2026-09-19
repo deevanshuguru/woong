@@ -3,6 +3,20 @@
 Append after every working session. Newest entry first.
 Any agent: read AGENTS.md, then STATUS.md, then this file, then mvp/tasks.json.
 
+## 2026-09-19 -- broker auth fixed
+
+### Done
+- /connect/authorize is a React SPA; API cookies do not carry over. Headless impossible.
+- Redirect chain: /connect/login -> /connect/finish -> /connect/authorize -> redirect URL
+- Fixed: browser-assist flow. webbrowser.open() + user pastes URL + token saved.
+- ok user_id=VQ3894 confirmed. Auth green.
+- File gremlin fix: build code as list of lines + ast.parse() before writing.
+- Created docs/BROKER_AUTH.md.
+
+### Next
+- broker_harvest --help, run W2 backfill, verify prices_daily row count
+- Then condition-window UI upgrade
+
 ## 2026-09-19 — re-home, broker auth, first UX review
 
 State:
