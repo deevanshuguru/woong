@@ -8,7 +8,15 @@ window.BASKETS = [
    "high beta"
   ],
   "idea": "A quantified screen published as a basket. The rule is re-run by the system.",
-  "rule": "NSE smallcaps \u00b7 Filter: float < \u20b9500cr AND price > 52W low \u00d7 1.3 \u00b7 Rank: 1M return \u00b7 Top 8",
+  "rule": {
+   "universe": "NSE smallcaps",
+   "filters": [
+    "float < \u20b9500cr",
+    "price > 52W low \u00d7 1.3"
+   ],
+   "rank": "1M return",
+   "top": 8
+  },
   "rank": 1,
   "ret1m": 11.4,
   "alpha1m": 10.68,
@@ -222,7 +230,15 @@ window.BASKETS = [
    "cyclical"
   ],
   "idea": "A quantified screen published as a basket. The rule is re-run by the system.",
-  "rule": "Metals universe \u00b7 Filter: price > 50-DMA AND utilisation > 80% \u00b7 Rank: 3M momentum \u00b7 Top 10",
+  "rule": {
+   "universe": "Metals universe",
+   "filters": [
+    "price > 50-DMA",
+    "utilisation > 80%"
+   ],
+   "rank": "3M momentum",
+   "top": 10
+  },
   "rank": 2,
   "ret1m": 7.1,
   "alpha1m": 6.38,
@@ -681,7 +697,15 @@ window.BASKETS = [
    }
   ],
   "launched": "2026-06-11",
-  "rule": "NSE equities \u00b7 Filter: 1M return > 5% AND price > 200-DMA \u00b7 Rank: 3M momentum, largest first \u00b7 Top 12"
+  "rule": {
+   "universe": "NSE equities",
+   "filters": [
+    "1M return > 5%",
+    "price > 200-DMA"
+   ],
+   "rank": "3M momentum, largest first",
+   "top": 12
+  }
  },
  {
   "id": "b1",
@@ -919,7 +943,15 @@ window.BASKETS = [
    }
   ],
   "launched": "2025-11-04",
-  "rule": "NSE equities \u00b7 Filter: sales growth > 12% AND debt/equity < 0.5 \u00b7 Rank: return stability \u00b7 Top 10"
+  "rule": {
+   "universe": "NSE equities",
+   "filters": [
+    "sales growth > 12%",
+    "debt/equity < 0.5"
+   ],
+   "rank": "return stability",
+   "top": 10
+  }
  },
  {
   "id": "b9",
@@ -1139,7 +1171,15 @@ window.BASKETS = [
    }
   ],
   "launched": "2026-01-22",
-  "rule": "NSE equities \u00b7 Filter: price/book < 1.2 AND promoter pledge = 0 \u00b7 Rank: earnings revision \u00b7 Top 12"
+  "rule": {
+   "universe": "NSE equities",
+   "filters": [
+    "price/book < 1.2",
+    "promoter pledge = 0"
+   ],
+   "rank": "earnings revision",
+   "top": 12
+  }
  },
  {
   "id": "b19",
@@ -1150,7 +1190,14 @@ window.BASKETS = [
    "ev"
   ],
   "idea": "A quantified screen published as a basket. The rule is re-run by the system.",
-  "rule": "EV supply chain universe \u00b7 Filter: EV revenue share > 10% \u00b7 Rank: 6M momentum \u00b7 Top 10",
+  "rule": {
+   "universe": "EV supply chain universe",
+   "filters": [
+    "EV revenue share > 10%"
+   ],
+   "rank": "6M momentum",
+   "top": 10
+  },
   "rank": 6,
   "ret1m": 4.4,
   "alpha1m": 2.7,
@@ -1382,7 +1429,14 @@ window.BASKETS = [
    "rate cycle"
   ],
   "idea": "A quantified screen published as a basket. The rule is re-run by the system.",
-  "rule": "Financials universe \u00b7 Filter: rate-sensitive lenders, ALM gap positive \u00b7 Rank: 6M momentum \u00b7 Top 12",
+  "rule": {
+   "universe": "Financials universe",
+   "filters": [
+    "rate-sensitive lenders, ALM gap positive"
+   ],
+   "rank": "6M momentum",
+   "top": 12
+  },
   "rank": 7,
   "ret1m": 3.3,
   "alpha1m": 1.28,
@@ -1632,7 +1686,14 @@ window.BASKETS = [
    "consumer tech"
   ],
   "idea": "A quantified screen published as a basket. The rule is re-run by the system.",
-  "rule": "Internet & new-age universe \u00b7 Filter: contribution margin positive \u00b7 Rank: 3M momentum \u00b7 Top 10",
+  "rule": {
+   "universe": "Internet & new-age universe",
+   "filters": [
+    "contribution margin positive"
+   ],
+   "rank": "3M momentum",
+   "top": 10
+  },
   "rank": 8,
   "ret1m": 2.9,
   "alpha1m": 1.39,
@@ -2082,7 +2143,14 @@ window.BASKETS = [
    }
   ],
   "launched": "2026-07-03",
-  "rule": "NSE equities \u00b7 Filter: June return > median historically \u00b7 Rank: July seasonality score \u00b7 Top 10"
+  "rule": {
+   "universe": "NSE equities",
+   "filters": [
+    "June return > median historically"
+   ],
+   "rank": "July seasonality score",
+   "top": 10
+  }
  },
  {
   "id": "b2",
@@ -2320,7 +2388,15 @@ window.BASKETS = [
    }
   ],
   "launched": "2025-08-19",
-  "rule": "PSU universe \u00b7 Filter: dividend yield > 2.5% AND govt stake > 55% \u00b7 Rank: dividend consistency \u00b7 Top 12"
+  "rule": {
+   "universe": "PSU universe",
+   "filters": [
+    "dividend yield > 2.5%",
+    "govt stake > 55%"
+   ],
+   "rank": "dividend consistency",
+   "top": 12
+  }
  },
  {
   "id": "b11",
@@ -2331,7 +2407,14 @@ window.BASKETS = [
    "railways"
   ],
   "idea": "A quantified screen published as a basket. The rule is re-run by the system.",
-  "rule": "Defence & railways universe \u00b7 Filter: order book/sales > 2 \u00b7 Rank: 3M momentum \u00b7 Top 8",
+  "rule": {
+   "universe": "Defence & railways universe",
+   "filters": [
+    "order book/sales > 2"
+   ],
+   "rank": "3M momentum",
+   "top": 8
+  },
   "rank": 11,
   "ret1m": 2.1,
   "alpha1m": 0.01,
@@ -2527,7 +2610,14 @@ window.BASKETS = [
    "quality"
   ],
   "idea": "A quantified screen published as a basket. The rule is re-run by the system.",
-  "rule": "Healthcare universe \u00b7 Filter: USFDA approvals in 12M \u00b7 Rank: 1Y return consistency \u00b7 Top 12",
+  "rule": {
+   "universe": "Healthcare universe",
+   "filters": [
+    "USFDA approvals in 12M"
+   ],
+   "rank": "1Y return consistency",
+   "top": 12
+  },
   "rank": 12,
   "ret1m": 1.9,
   "alpha1m": 1.1,
@@ -3031,7 +3121,15 @@ window.BASKETS = [
    }
   ],
   "launched": "2026-04-28",
-  "rule": "NSE smallcaps \u00b7 Filter: price > 200-DMA AND 20D volume > \u20b910cr \u00b7 Rank: 3M momentum \u00b7 Top 10"
+  "rule": {
+   "universe": "NSE smallcaps",
+   "filters": [
+    "price > 200-DMA",
+    "20D volume > \u20b910cr"
+   ],
+   "rank": "3M momentum",
+   "top": 10
+  }
  },
  {
   "id": "b4",
@@ -3278,7 +3376,15 @@ window.BASKETS = [
    }
   ],
   "launched": "2025-09-30",
-  "rule": "NSE equities \u00b7 Filter: 5Y dividend growth > 8% AND payout < 80% \u00b7 Rank: yield \u00b7 Top 12"
+  "rule": {
+   "universe": "NSE equities",
+   "filters": [
+    "5Y dividend growth > 8%",
+    "payout < 80%"
+   ],
+   "rank": "yield",
+   "top": 12
+  }
  },
  {
   "id": "b7",
@@ -3534,7 +3640,15 @@ window.BASKETS = [
    }
   ],
   "launched": "2026-02-09",
-  "rule": "Financials universe \u00b7 Filter: NIM expansion QoQ AND CASA ratio > 35% \u00b7 Rank: 6M momentum \u00b7 Top 10"
+  "rule": {
+   "universe": "Financials universe",
+   "filters": [
+    "NIM expansion QoQ",
+    "CASA ratio > 35%"
+   ],
+   "rank": "6M momentum",
+   "top": 10
+  }
  },
  {
   "id": "b13",
@@ -3545,7 +3659,15 @@ window.BASKETS = [
    "low volatility"
   ],
   "idea": "A quantified screen published as a basket. The rule is re-run by the system.",
-  "rule": "NSE equities \u00b7 Filter: dividend yield > 3% AND 10Y payment streak \u00b7 Rank: yield \u00b7 Top 12",
+  "rule": {
+   "universe": "NSE equities",
+   "filters": [
+    "dividend yield > 3%",
+    "10Y payment streak"
+   ],
+   "rank": "yield",
+   "top": 12
+  },
   "rank": 16,
   "ret1m": 1.2,
   "alpha1m": 0.68,
@@ -3795,7 +3917,14 @@ window.BASKETS = [
    "defensive"
   ],
   "idea": "A quantified screen published as a basket. The rule is re-run by the system.",
-  "rule": "ETF & gold universe \u00b7 Filter: liquid ETFs, AUM > \u20b9500cr \u00b7 Rank: 6M risk-adjusted return \u00b7 Top 6",
+  "rule": {
+   "universe": "ETF & gold universe",
+   "filters": [
+    "liquid ETFs, AUM > \u20b9500cr"
+   ],
+   "rank": "6M risk-adjusted return",
+   "top": 6
+  },
   "rank": 17,
   "ret1m": 0.8,
   "alpha1m": 0.26,
@@ -4236,7 +4365,14 @@ window.BASKETS = [
    }
   ],
   "launched": "2026-05-16",
-  "rule": "NSE equities \u00b7 Filter: USD revenue > 40% \u00b7 Rank: 1M momentum \u00b7 Top 12"
+  "rule": {
+   "universe": "NSE equities",
+   "filters": [
+    "USD revenue > 40%"
+   ],
+   "rank": "1M momentum",
+   "top": 12
+  }
  },
  {
   "id": "b3",
@@ -4465,7 +4601,14 @@ window.BASKETS = [
    }
   ],
   "launched": "2025-12-01",
-  "rule": "Consumer universe \u00b7 Filter: same-store growth > 8% \u00b7 Rank: 1Y return consistency \u00b7 Top 10"
+  "rule": {
+   "universe": "Consumer universe",
+   "filters": [
+    "same-store growth > 8%"
+   ],
+   "rank": "1Y return consistency",
+   "top": 10
+  }
  },
  {
   "id": "b15",
@@ -4476,7 +4619,14 @@ window.BASKETS = [
    "cyclical"
   ],
   "idea": "A quantified screen published as a basket. The rule is re-run by the system.",
-  "rule": "Chemicals universe \u00b7 Filter: capacity expansion funded by internal accruals \u00b7 Rank: margin trend \u00b7 Top 10",
+  "rule": {
+   "universe": "Chemicals universe",
+   "filters": [
+    "capacity expansion funded by internal accruals"
+   ],
+   "rank": "margin trend",
+   "top": 10
+  },
   "rank": 20,
   "ret1m": -3.2,
   "alpha1m": -3.71,

@@ -46,20 +46,42 @@ Violating a rule here is a bug, not a style choice.
 - Font: Poppins (Groww), system fallback. Desktop only, min 1100px, light+
   dark themes; theme choice persists (localStorage: woong-theme); system
   preference is the fallback.
-- Basket card anatomy, in order: risk pill (first) + #rank; basket name;
-  tag chips (Title Case, stored display-ready); "by provider"; chart; stats
-  row (1M return, 1M vs Nifty, Since launch, Launch vs Nifty); meta footer
-  (stocks/ETFs with correct singular/plural, launched, updated).
-- Card click opens the right slide-over quick view (rank, risk, chart, rule,
-  top holdings, "Open full page →"). ESC, scrim click, and ✕ close it.
-  Cards are focusable; Enter opens.
-- Sidebar filters: Risk (colored green/amber/red), 1M return comparator chips
-  (Any / Negative / Positive / 0–5% / Above 5%), Min investment chips,
-  Launched, Last updated. Every filter group shows live counts. Reset clears
-  all. Sort control is always labeled "Sort by".
+- Basket card anatomy, in order: name with rank ("#1 Name"); chip row with
+  the volatility chip FIRST then tag chips (multi-colored, Title Case);
+  "By provider"; chart; dual-window stats; meta footer (stocks/ETFs with
+  correct singular/plural, launched, updated with exact-date hover).
+- Card click opens the right slide-over quick view. ESC, scrim click, and ✕
+  close it. Cards are focusable; Enter opens.
+- Sidebar filters: Risk (colored green/amber/red), 1M return comparator chips,
+  Min investment chips, Launched, Last updated. Live counts. Reset. Sort
+  control always labeled "Sort by". Filter accent color is GREEN (--faccent),
+  not the blue accent.
+- Strategy/tag filter group: removed from the sidebar (tags show on cards).
 
 ## Process
 - One surface per commit. Human visual sign-off before every commit.
 - After writing any page: audit for unescaped quotes inside string literals
   (the file-transfer gremlin) and backslashes; then browser-test hard-refresh.
 - Every UI decision lands in this file the same day it is made.
+
+## v2 additions — baskets (explorer + detail)
+
+- Rules are structured objects (universe, filters[], rank, top), rendered as
+  labeled rows (Universe / Filter / AND / Rank / Size) — never as a dotted
+  single string. Same presentation on quick view and detail page.
+- Basket stats are dual-window: 1M return, 1M vs Nifty, Since-launch return,
+  Since-launch vs Nifty. Chart window = launch date if younger than 1Y,
+  else 1Y ("as applicable").
+- Detail page holdings table: price, whole-share quantity, value at minimum
+  investment, weight bar, 1M, 3M — with totals row and an outlay note.
+- Detail page facts sidebar: provider, holdings split, min investment,
+  volatility (1Y), positive weeks %, best/worst 1M holding, launched, updated.
+- Quantity/holdings math uses whole shares only; outlay may exceed the
+  minimum target and is stated honestly.
+- Chips are multi-colored: each tag gets a stable color from an 8-color
+  palette (hash of the tag name). Risk chip keeps semantic color and carries
+  the actual volatility number on hover.
+- Filter sidebar primary color is GREEN (--faccent): selected chips,
+  checkboxes, reset link.
+- Card layout: name first with rank inside ("#1 Name"); chip row after name
+  with volatility chip first; provider line after chips.

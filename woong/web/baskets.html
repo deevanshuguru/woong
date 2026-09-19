@@ -11,12 +11,14 @@
   --bg:#f6f7f9; --panel:#ffffff; --panel2:#f2f4f7; --ink:#1a1d23; --muted:#6b7280;
   --line:#e5e8ec; --line2:#cdd3da; --accent:#2456d6; --accent-soft:#eef2fd;
   --good:#0a7d33; --bad:#c23434; --warn-bg:#fff3cd; --warn-ink:#7a5b00; --warn-line:#ead28a;
+  --faccent:#0a7d33;
   --r-card:12px; --r-ctl:8px; --r-pill:999px;
 }
 html[data-theme="dark"] {
   --bg:#0e1116; --panel:#161b22; --panel2:#1d242e; --ink:#e6e9ef; --muted:#8b93a1;
   --line:#232a33; --line2:#39424e; --accent:#5b83ff; --accent-soft:#1c2536;
   --good:#2ea45a; --bad:#e05252; --warn-bg:#332b12; --warn-ink:#e7c56a; --warn-line:#5a4a1a;
+  --faccent:#2ea45a;
 }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--bg); color:var(--ink);
@@ -43,18 +45,18 @@ a { color:inherit; text-decoration:none; }
   border:1px solid var(--line); border-radius:var(--r-card); padding:16px; max-height:calc(100vh - 90px); overflow:auto; }
 .side-h { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
 .side-h b { font-size:13px; font-weight:600; }
-.reset { background:none; border:0; padding:0; color:var(--accent); font-size:12px; cursor:pointer; }
+.reset { background:none; border:0; padding:0; color:var(--faccent); font-size:12px; cursor:pointer; }
 .fgroup { border-top:1px solid var(--line); padding:12px 0; }
 .fgroup:first-of-type { border-top:0; padding-top:2px; }
 .flabel { display:block; font-size:11px; font-weight:600; text-transform:uppercase;
   letter-spacing:.07em; color:var(--muted); margin-bottom:8px; }
 .frow { display:flex; align-items:center; gap:8px; padding:4px 0; font-size:13px; cursor:pointer; }
-.frow input { accent-color:var(--accent); margin:0; }
+.frow input { accent-color:var(--faccent); margin:0; }
 .frow .cnt { margin-left:auto; color:var(--muted); font-size:11.5px; }
 .fchips { display:flex; flex-wrap:wrap; gap:6px; }
 .chip { border:1px solid var(--line2); border-radius:var(--r-pill); padding:3px 10px; font-size:12px;
   cursor:pointer; background:var(--panel); color:var(--ink); }
-.chip.on { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:500; }
+.chip.on { background:color-mix(in srgb, var(--faccent) 12%, transparent); border-color:var(--faccent); color:var(--faccent); font-weight:500; }
 
 .rhead { display:flex; align-items:center; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
 .rhead .title { font-size:15px; font-weight:600; margin:0 auto 0 0; }
@@ -69,11 +71,9 @@ a { color:inherit; text-decoration:none; }
   border:1px solid var(--line); border-radius:var(--r-card); padding:16px 18px;
   transition:border-color .12s ease; cursor:pointer; }
 .card:hover, .card:focus-visible { border-color:var(--accent); outline:none; }
-.card .go { position:absolute; right:16px; top:16px; color:var(--accent); font-size:12px; opacity:0; }
-.card:hover .go, .card:focus-visible .go { opacity:1; }
 .crow { display:flex; align-items:center; gap:8px; }
 .name { font-size:16px; font-weight:600; letter-spacing:-0.01em; }
-.rank { color:var(--muted); font-size:12.5px; font-weight:500; margin-left:auto; }
+.rank { color:var(--muted); font-size:13.5px; font-weight:500; }
 .risk { display:inline-flex; align-items:center; font-size:11px; font-weight:500;
   border-radius:var(--r-pill); padding:1px 9px; }
 .risk.low  { color:var(--good); background:color-mix(in srgb, var(--good) 10%, transparent); }
@@ -82,9 +82,12 @@ a { color:inherit; text-decoration:none; }
 html[data-theme="dark"] .risk.med { color:#e0a800; }
 .who { color:var(--muted); font-size:12px; }
 .tags { display:flex; gap:6px; flex-wrap:wrap; }
-.tag { font-size:11px; color:var(--accent); background:var(--accent-soft);
-  border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  padding:1px 8px; border-radius:var(--r-pill); }
+.tag, .tchip { font-size:11px; border:1px solid; padding:1px 9px; border-radius:var(--r-pill); font-weight:500; }
+.tchip { background:var(--accent-soft); }
+.rrow { display:flex; gap:10px; padding:4px 0; border-bottom:1px dashed var(--line); font-size:12.5px; }
+.rrow:last-child { border-bottom:0; }
+.rrow .rk { flex:none; width:70px; color:var(--muted); text-transform:uppercase; font-size:10.5px; letter-spacing:.06em; padding-top:1px; }
+.rrow .rv { font-weight:500; font-variant-numeric:tabular-nums; }
 .sparkwrap { position:relative; margin:2px 0; }
 .spark { display:block; width:100%; height:58px; }
 .tip { position:absolute; z-index:2; pointer-events:none; display:none;
@@ -330,21 +333,38 @@ function passFilters(b) {
 }
 
 /* ================= card ================= */
-function cardHTML(b, position) {
+function tagColor(tag) {
+  let h = 0;
+  for (let i = 0; i < tag.length; i += 1) h = (h * 31 + tag.charCodeAt(i)) % 997;
+  return ["#2456d6","#0a7d33","#9a3412","#7c3aed","#b45309","#0e7490","#be185d","#4d7c0f"][h % 8];
+}
+function chipRow(b) {
   const risk = riskLabel(b);
-  const vol = (weeklyVol(b) * 100).toFixed(1);
+  const chips = ['<span class="risk ' + risk.key + '" title="One-year weekly volatility ' + (weeklyVol(b) * 100).toFixed(1) + '%">' + risk.text + "</span>"];
+  b.tags.forEach((tg) => {
+    const c = tagColor(tg);
+    chips.push('<span class="tchip" style="color:' + c + ';background:color-mix(in srgb, ' + c + ' 10%, transparent);border-color:color-mix(in srgb, ' + c + ' 35%, transparent)">' + tg + "</span>");
+  });
+  return '<div class="tags">' + chips.join("") + "</div>";
+}
+function ruleHTML(rule) {
+  const frow = (k, v) => '<div class="rrow"><span class="rk">' + k + "</span><span class='rv'>" + v + "</span></div>";
+  let html = frow("Universe", rule.universe);
+  rule.filters.forEach((f, i) => {
+    html += frow(i === 0 ? "Filter" : "AND", f);
+  });
+  html += frow("Rank", rule.rank);
+  html += frow("Size", "Top " + rule.top);
+  return '<div class="rulebox">' + html + "</div>";
+}
+function cardHTML(b, position) {
   const c = counts(b);
   const sl = sinceLaunch(b);
   const parts = sparkParts(b);
   return '<div class="card" role="link" tabindex="0" data-open="' + b.id + '">' +
-    '<span class="go">Quick view →</span>' +
-    '<div class="crow">' +
-      '<span class="risk ' + risk.key + '" title="One-year weekly volatility ' + vol + '%">' + risk.text + "</span>" +
-      '<span class="rank">#' + position + "</span>" +
-    "</div>" +
-    '<div class="name">' + b.name + "</div>" +
-    '<div class="tags">' + b.tags.map((t) => '<span class="tag">' + t + "</span>").join("") + "</div>" +
-    '<div class="who">by ' + b.provider + "</div>" +
+    '<div class="crow"><span class="name"><span class="rank">#' + position + "</span> " + b.name + "</span></div>" +
+    chipRow(b) +
+    '<div class="who">By ' + b.provider + "</div>" +
     '<div class="sparkwrap">' + parts.svg + "</div>" +
     '<div class="stats">' +
       '<div class="stat"><span class="k">1M return</span><span class="v num ' + signedClass(b.ret1m) + '">' + fmtPct(b.ret1m) + "</span></div>" +
@@ -372,16 +392,13 @@ overlay.innerHTML =
 document.body.appendChild(overlay);
 
 function openQuick(b) {
-  const risk = riskLabel(b);
-  const c = counts(b);
   const sl = sinceLaunch(b);
+  const c = counts(b);
   const top = b.stocks.slice().sort((x, y) => y.weight - x.weight).slice(0, 5);
   document.getElementById("pbody").innerHTML =
-    '<div class="crow"><span class="risk ' + risk.key + '">' + risk.text + "</span>" +
-    '<span class="rank">#' + b.rank + "</span></div>" +
-    '<div class="name" style="font-size:18px">' + b.name + "</div>" +
-    '<div class="who">by ' + b.provider + " · Launched " + ago(b.launched) + " · Updated " + ago(b.updated) + "</div>" +
-    '<div class="tags">' + b.tags.map((t) => '<span class="tag">' + t + "</span>").join("") + "</div>" +
+    '<div class="name" style="font-size:18px"><span class="rank">#' + b.rank + "</span> " + b.name + "</div>" +
+    chipRow(b) +
+    '<div class="who">By ' + b.provider + " · Launched " + ago(b.launched) + " · Updated " + ago(b.updated) + "</div>" +
     '<div class="sparkwrap">' + sparkParts(b).svg + "</div>" +
     '<div class="stats" style="border-top:0;padding-top:0">' +
     '<div class="stat"><span class="k">1M return</span><span class="v num ' + signedClass(b.ret1m) + '">' + fmtPct(b.ret1m) + "</span></div>" +
@@ -389,11 +406,11 @@ function openQuick(b) {
     '<div class="stat"><span class="k">Since launch</span><span class="v num ' + signedClass(sl.basket) + '">' + fmtPct(sl.basket) + "</span></div>" +
     '<div class="stat"><span class="k">Launch vs Nifty</span><span class="v num ' + signedClass(sl.alpha) + '">' + fmtPct(sl.alpha, true) + "</span></div>" +
     "</div>" +
-    '<p class="plabel">The rule, as the system runs it</p><div class="rulebox">' + b.rule + "</div>" +
+    '<p class="plabel">The rule, as the system runs it</p>' + ruleHTML(b.rule) +
     '<p class="plabel">Top holdings</p><div id="phold"></div>';
   document.getElementById("phold").innerHTML = top.map((s) => {
     const kind = s.kind === "etf" ? " · ETF" : "";
-    return '<div class="hrow"><span><b>' + s.symbol + "</b> · " + s.name + kind + "</span><span class='num'>" + s.weight + "%</span></div>";
+    return '<div class="hrow"><span><b>' + s.symbol + '</b> · ' + s.name + kind + '</span><span class="num">' + s.weight + '%</span></div>';
   }).join("");
   bindSpark(document.getElementById("pbody"), b);
   document.getElementById("pfull").setAttribute("href", "/basket/" + b.id);
