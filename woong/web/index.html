@@ -386,8 +386,12 @@
         const removeBtn = state.rank.length > 1
           ? `<button type="button" class="link" data-action="remove-rank">remove</button>`
           : "";
+        const rw = clause.window || { n: 1, unit: "Y" };
+        const rPeriod = PARAMETRIC_METRICS.has(clause.metric)
+          ? `<div class="cond-period"><span class="unit-hint">over</span><input class="rank-window-n" type="number" min="1" step="1" value="${rw.n}" style="width:55px"><select class="rank-window-unit"><option value="D"${rw.unit==="D"?" selected":""}>days</option><option value="W"${rw.unit==="W"?" selected":""}>weeks</option><option value="M"${rw.unit==="M"?" selected":""}>months</option><option value="Y"${rw.unit==="Y"?" selected":""}>years</option></select></div>` : "";
         return `<div class="cond" data-rank="${index}">
           <div class="cond-top"><select class="rank-metric">${metricOptions(clause.metric, true)}</select></div>
+          ${rPeriod}
           <div class="cond-bottom">
             <select class="rank-dir">
               <option value="desc"${clause.dir !== "asc" ? " selected" : ""}>largest first</option>
