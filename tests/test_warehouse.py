@@ -89,7 +89,7 @@ def test_catalogue_refuses_a_52w_high_without_high() -> None:
     assert "session high" in str(by_id["fall_from_52w_high_pct"]["off_reason"])
     assert by_id["pe"]["available"] is False
     assert by_id["sma_200"]["available"] is True
-    assert by_id["return_1y"]["source_table"] == "prices_daily"
+    assert by_id["return"]["source_table"] == "prices_daily"
     for row in CATALOGUE_ROWS:
         if row["available"]:
             assert row["off_reason"] == ""

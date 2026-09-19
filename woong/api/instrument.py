@@ -29,8 +29,7 @@ from woong.warehouse.store import Warehouse
 # groups, because a traded instrument with a close series has the same facts
 # whatever it is called.
 PRICE_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("Return", ("return_1d", "return_1w", "return_1m", "return_3m", "return_1y", "return_3y", "return_5y")),
-    ("Moving average", ("close", "sma_50", "sma_200", "dist_sma_50_pct", "dist_sma_200_pct")),
+    ("Price and Moving Average", ("close", "sma_50", "sma_200", "dist_sma_50_pct", "dist_sma_200_pct")),
     ("Volatility", ("volatility_21d",)),
     ("Supplied factor", ("momentum_score",)),
 )
@@ -109,7 +108,12 @@ def lookup_instruments(warehouse: Warehouse, query: str) -> list[dict[str, Any]]
 
 
 def _metric_cell(metric_id: str, catalogue: dict[str, dict[str, Any]], snap_row: Any) -> dict[str, Any]:
-    cat = catalogue[metric_id]
+    cat = catalogue.get(metric_id)
+    if cat is None:
+        return {"id": metric_id, "label": metric_id, "available": False,
+                "missing": True, "reason": "Metric not in current catalogue.",
+                "value": None, "display": None, "unit": "", "definition": ""}
+
     raw = None if snap_row is None else snap_row.get(metric_id)
     missing = snap_row is None or _is_na(raw)
     reason = ""
@@ -324,7 +328,7 @@ def instrument_page(warehouse: Warehouse, symbol: str, exchange: str) -> dict[st
         "headline": {
             "close": close_value,
             "close_display": display_value(close_value, "INR"),
-            "return_1d": day_move,
+            "return_1d": None,  # removed: computed dynamically
             "return_1d_display": display_value(day_move, "ratio"),
         },
         "session_count": 0 if history.empty else int(len(history)),

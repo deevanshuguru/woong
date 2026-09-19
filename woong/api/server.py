@@ -20,7 +20,7 @@ from woong.metrics.snapshot import build_snapshot
 from woong.metrics.studies import STUDY_ROWS
 from woong.api.instrument import InstrumentNotFound, instrument_page, lookup_instruments
 from woong.api.present import to_display_query
-from woong.warehouse.schema import SCAN_SNAPSHOT, UNIVERSE_MEMBERS, UNIVERSES
+from woong.warehouse.schema import PRICES_DAILY, SCAN_SNAPSHOT, UNIVERSE_MEMBERS, UNIVERSES
 from woong.warehouse.store import Warehouse
 
 WEB_DIR = Path(__file__).resolve().parents[1] / "web"
@@ -137,6 +137,7 @@ class ScannerHandler(BaseHTTPRequestHandler):
                     self.warehouse.read(UNIVERSE_MEMBERS),
                     list(CATALOGUE_ROWS),
                     self.warehouse.read(UNIVERSES),
+                    prices=self.warehouse.read(PRICES_DAILY),
                 )
             except QueryError as exc:
                 self._send_json(400, {"error": str(exc)})

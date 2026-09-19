@@ -43,15 +43,15 @@ def test_instrument_page_reads_warehouse_facts(tmp_path: Path) -> None:
     assert page["symbol"] == "AAA"
     assert page["exchange"] == "NSE"
     assert page["session_count"] == 3
+    assert "Not a buy or sell recommendation" in page["disclaimer"]
+    assert page["prices"][-1]["close"] == pytest.approx(121.0)
     by_id = {
         metric["id"]: metric
         for group in page["metric_groups"]
         for metric in group["metrics"]
     }
-    assert by_id["return_1d"]["display"] == "10.00%"
-    assert by_id["return_1y"]["missing"] is True
-    assert "Not a buy or sell recommendation" in page["disclaimer"]
-    assert page["prices"][-1]["close"] == pytest.approx(121.0)
+    assert by_id["close"]["value"] == pytest.approx(121.0)
+    assert by_id["sma_200"]["missing"] is True
 
 
 def test_price_chart_geometry_comes_from_python(tmp_path: Path) -> None:
