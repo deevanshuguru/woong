@@ -15,6 +15,7 @@
       </div>
       <p class="tagline">Write a rule. See the stocks that match it, ranked, on real numbers.</p>
       <p id="asof" class="datastatus"></p>
+    <button type="button" id="theme-toggle" class="quiet" style="margin-left:8px">&#9728;</button>
     </header>
     <aside class="left">
       <p class="eyebrow">Your rule</p>
@@ -121,7 +122,7 @@
       meta: null,
       studyId: null,
       filter: { op: "and", args: [] },
-      rank: [{ metric: "return_1y", dir: "desc", weight: 1 }],
+      rank: [{ metric: "return", window: { n: 1, unit: "Y" }, dir: "desc", weight: 1 }],
     };
     const $ = (id) => document.getElementById(id);
 
@@ -142,7 +143,9 @@
       ratios_asof: "From fundamentals"
     };
 
-    function escapeHtml(text) {
+    const PARAMETRIC_METRICS = new Set(["return", "sma"]);
+
+  function escapeHtml(text) {
       return String(text).replace(/[&<>"']/g, (ch) => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
       })[ch]);
@@ -192,7 +195,7 @@
       return JSON.parse(JSON.stringify(value));
     }
     function blankCondition() {
-      return { metric: "return_1y", period: "latest", cmp: ">", value: 0, unit: "percent", enabled: true };
+      return { metric: "return", window: { n: 1, unit: "Y" }, period: "latest", cmp: ">", value: 0, enabled: true };
     }
     function oppositeJoin(op) {
       return op === "and" ? "or" : "and";
@@ -426,11 +429,7 @@
         universe: { set: $("universe").value },
         as_of: "latest",
         rank: {
-          by: state.rank.map((clause) => ({
-            metric: clause.metric,
-            dir: clause.dir,
-            weight: clause.weight === undefined ? 1 : clause.weight
-          })),
+          by: state.rank.map((clause) => { const item = { metric: clause.metric, dir: clause.dir, weight: clause.weight === undefined ? 1 : clause.weight }; if (clause.window) item.window = clause.window; return item; }),
           top_n: Number($("top-n").value)
         }
       };
@@ -638,6 +637,22 @@
       });
       $("studies").innerHTML = html;
     }
+
+    // dark mode
+  (function() {
+    const saved = localStorage.getItem("woong-theme") || "light";
+    document.documentElement.dataset.theme = saved;
+    const btn = document.getElementById("theme-toggle");
+    if (btn) {
+      btn.textContent = saved === "dark" ? "☀" : "☽";
+      btn.onclick = function() {
+        const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        document.documentElement.dataset.theme = next;
+        btn.textContent = next === "dark" ? "☀" : "☽";
+        localStorage.setItem("woong-theme", next);
+      };
+    }
+  })();
 
     fetch("/api/meta").then((res) => res.json()).then((meta) => {
       state.meta = meta;

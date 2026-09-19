@@ -398,3 +398,36 @@ td.muted { color: var(--muted); }
   font-size: 12px;
   color: var(--muted);
 }
+
+/* ---- dark mode ---- */
+html[data-theme="dark"] {
+  --bg: #0f1117;
+  --panel: #1a1d23;
+  --ink: #e4e6ed;
+  --muted: #7e8693;
+  --line: #22262e;
+  --line-strong: #2d3240;
+}
+html[data-theme="dark"] .cond { background: #1e2229; }
+html[data-theme="dark"] select,
+html[data-theme="dark"] input[type="text"],
+html[data-theme="dark"] input[type="number"] {
+  background: #22262e;
+  color: #e4e6ed;
+  border-color: #2d3240;
+}
+html[data-theme="dark"] thead th { background: #1a1d23; }
+html[data-theme="dark"] tbody tr:nth-child(even) td { background: #1e2229; }
+html[data-theme="dark"] tbody tr:hover td { background: #252a35; }
+html[data-theme="dark"] .quiet { background: #22262e; border-color: #2d3240; color: #e4e6ed; }
+html[data-theme="dark"] .run-bar { background: #1a1d23; }
+
+/* period picker row */
+.cond-period {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.window-n { width: 62px; }
+.window-unit { width: auto; }
