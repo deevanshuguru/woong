@@ -11,6 +11,7 @@
   --bg:#f6f7f9; --panel:#ffffff; --panel2:#f2f4f7; --ink:#1a1d23; --muted:#6b7280;
   --line:#e5e8ec; --line2:#cdd3da; --accent:#2456d6; --accent-soft:#eef2fd;
   --good:#0a7d33; --bad:#c23434; --warn-bg:#fff3cd; --warn-ink:#7a5b00; --warn-line:#ead28a;
+  --r-card:12px; --r-ctl:8px; --r-pill:999px;
 }
 html[data-theme="dark"] {
   --bg:#0e1116; --panel:#161b22; --panel2:#1d242e; --ink:#e6e9ef; --muted:#8b93a1;
@@ -18,31 +19,28 @@ html[data-theme="dark"] {
   --good:#2ea45a; --bad:#e05252; --warn-bg:#332b12; --warn-ink:#e7c56a; --warn-line:#5a4a1a;
 }
 * { box-sizing:border-box; }
-:root { --r-card:12px; --r-ctl:8px; --r-pill:999px; }
 body { margin:0; background:var(--bg); color:var(--ink);
   font:13.5px/1.5 Poppins,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; }
 a { color:inherit; text-decoration:none; }
 .num { font-variant-numeric:tabular-nums; }
 .up{color:var(--good)} .down{color:var(--bad)}
 
-/* ---- header ---- */
 .top { position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:14px;
   padding:12px 24px; background:var(--panel); border-bottom:1px solid var(--line); }
 .brand { display:flex; align-items:baseline; gap:8px; }
-.brand h1 { margin:0; font-size:17px; font-weight:600; letter-spacing:-0.01em; }
+.brand h1 { margin:0; font-size:17px; font-weight:600; }
 .badge { font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
-  border:1px solid var(--line2); border-radius:4px; padding:1px 6px; }
+  border:1px solid var(--line2); border-radius:var(--r-pill); padding:1px 6px; }
 .promise { margin:0; color:var(--muted); font-size:13px; }
 .dummy { background:var(--warn-bg); color:var(--warn-ink); border:1px solid var(--warn-line);
-  border-radius:999px; padding:2px 10px; font-size:11.5px; margin-left:auto; white-space:nowrap; }
+  border-radius:var(--r-pill); padding:2px 10px; font-size:11.5px; margin-left:auto; white-space:nowrap; }
 .iconbtn { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px;
-  border:1px solid var(--line2); border-radius:8px; background:var(--panel); color:var(--muted); cursor:pointer; }
+  border:1px solid var(--line2); border-radius:var(--r-ctl); background:var(--panel); color:var(--muted); cursor:pointer; }
 .iconbtn:hover { border-color:var(--accent); color:var(--accent); }
 
-/* ---- layout ---- */
-.shell { display:grid; grid-template-columns:240px minmax(0,1fr); gap:20px; max-width:1200px; margin:0 auto; padding:20px 24px 48px; }
+.shell { display:grid; grid-template-columns:250px minmax(0,1fr); gap:20px; max-width:1320px; margin:0 auto; padding:20px 24px 48px; }
 .sidebar { position:sticky; top:64px; align-self:start; background:var(--panel);
-  border:1px solid var(--line); border-radius:var(--radius); padding:16px; max-height:calc(100vh - 90px); overflow:auto; }
+  border:1px solid var(--line); border-radius:var(--r-card); padding:16px; max-height:calc(100vh - 90px); overflow:auto; }
 .side-h { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
 .side-h b { font-size:13px; font-weight:600; }
 .reset { background:none; border:0; padding:0; color:var(--accent); font-size:12px; cursor:pointer; }
@@ -54,30 +52,63 @@ a { color:inherit; text-decoration:none; }
 .frow input { accent-color:var(--accent); margin:0; }
 .frow .cnt { margin-left:auto; color:var(--muted); font-size:11.5px; }
 .fchips { display:flex; flex-wrap:wrap; gap:6px; }
-.chip { border:1px solid var(--line2); border-radius:999px; padding:3px 10px; font-size:12px;
+.chip { border:1px solid var(--line2); border-radius:var(--r-pill); padding:3px 10px; font-size:12px;
   cursor:pointer; background:var(--panel); color:var(--ink); }
 .chip.on { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:500; }
 
-/* ---- results head ---- */
 .rhead { display:flex; align-items:center; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
 .rhead .title { font-size:15px; font-weight:600; margin:0 auto 0 0; }
 .rhead .sub { color:var(--muted); font-size:12px; }
 .rhead select { font:inherit; font-size:12.5px; color:var(--ink); background:var(--panel);
-  border:1px solid var(--line2); border-radius:8px; padding:6px 8px; }
-
-
+  border:1px solid var(--line2); border-radius:var(--r-ctl); padding:6px 8px; }
 .sortlabel { color:var(--muted); font-size:12px; margin-left:auto; }
-.card, .sidebar, .panel, .empty { border-radius:var(--r-card); }
-.toolbar input, .toolbar select, .rhead select, .iconbtn { border-radius:var(--r-ctl); }
-.tag, .rank, .risk, .dummy, .chip, .rankbadge { border-radius:var(--r-pill); }
+
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media (max-width:1150px){ .grid{grid-template-columns:1fr;} }
+.card { position:relative; display:flex; flex-direction:column; gap:9px; background:var(--panel);
+  border:1px solid var(--line); border-radius:var(--r-card); padding:16px 18px;
+  transition:border-color .12s ease; cursor:pointer; }
+.card:hover, .card:focus-visible { border-color:var(--accent); outline:none; }
+.card .go { position:absolute; right:16px; top:16px; color:var(--accent); font-size:12px; opacity:0; }
+.card:hover .go, .card:focus-visible .go { opacity:1; }
+.crow { display:flex; align-items:center; gap:8px; }
+.name { font-size:16px; font-weight:600; letter-spacing:-0.01em; }
+.rank { color:var(--muted); font-size:12.5px; font-weight:500; margin-left:auto; }
+.risk { display:inline-flex; align-items:center; font-size:11px; font-weight:500;
+  border-radius:var(--r-pill); padding:1px 9px; }
+.risk.low  { color:var(--good); background:color-mix(in srgb, var(--good) 10%, transparent); }
+.risk.med  { color:#9a6b00; background:color-mix(in srgb, #e0a800 15%, transparent); }
+.risk.high { color:var(--bad); background:color-mix(in srgb, var(--bad) 10%, transparent); }
+html[data-theme="dark"] .risk.med { color:#e0a800; }
+.who { color:var(--muted); font-size:12px; }
+.tags { display:flex; gap:6px; flex-wrap:wrap; }
+.tag { font-size:11px; color:var(--accent); background:var(--accent-soft);
+  border:1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  padding:1px 8px; border-radius:var(--r-pill); }
+.sparkwrap { position:relative; margin:2px 0; }
+.spark { display:block; width:100%; height:58px; }
+.tip { position:absolute; z-index:2; pointer-events:none; display:none;
+  background:var(--ink); color:var(--bg); border-radius:6px; padding:6px 9px;
+  font-size:11px; line-height:1.5; white-space:nowrap; transform:translate(-50%,-110%);
+  font-variant-numeric:tabular-nums; }
+.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+  border-top:1px solid var(--line); padding-top:10px; }
+.stat .k { display:block; color:var(--muted); font-size:10px; text-transform:uppercase;
+  letter-spacing:.05em; margin-bottom:1px; white-space:nowrap; }
+.stat .v { font-size:14px; font-weight:600; white-space:nowrap; }
+.meta { display:flex; justify-content:space-between; color:var(--muted); font-size:11.5px; }
+.meta .sep { color:var(--line2); }
+.empty { grid-column:1/-1; text-align:center; color:var(--muted); padding:40px 0;
+  background:var(--panel); border:1px dashed var(--line2); border-radius:var(--r-card); }
+.foot { color:var(--muted); font-size:11.5px; margin-top:24px; }
+
 .overlay { position:fixed; inset:0; z-index:20; visibility:hidden; }
 .overlay.open { visibility:visible; }
 .scrim { position:absolute; inset:0; background:rgba(10,14,20,.45); opacity:0; transition:opacity .15s ease; }
 .overlay.open .scrim { opacity:1; }
-.panel { position:absolute; top:0; right:0; height:100%; width:420px; max-width:92vw;
-  background:var(--panel); border-left:1px solid var(--line);
-  transform:translateX(102%); transition:transform .18s ease;
-  display:flex; flex-direction:column; }
+.panel { position:absolute; top:0; right:0; height:100%; width:440px; max-width:94vw;
+  background:var(--panel); border-left:1px solid var(--line); border-radius:var(--r-card) 0 0 var(--r-card);
+  transform:translateX(103%); transition:transform .18s ease; display:flex; flex-direction:column; }
 .overlay.open .panel { transform:translateX(0); }
 .phead { display:flex; align-items:center; justify-content:space-between;
   padding:14px 18px; border-bottom:1px solid var(--line); }
@@ -89,47 +120,9 @@ a { color:inherit; text-decoration:none; }
 .plabel { margin:8px 0 2px; font-size:11px; font-weight:600; text-transform:uppercase;
   letter-spacing:.07em; color:var(--muted); }
 .rulebox { background:var(--panel2); border:1px solid var(--line); border-radius:var(--r-ctl);
-  padding:10px 12px; font-size:13px; }
+  padding:10px 12px; font-size:12.5px; font-variant-numeric:tabular-nums; }
 .hrow { display:flex; justify-content:space-between; gap:10px; padding:6px 0;
   border-bottom:1px solid var(--line); font-size:12.5px; }
-
-/* ---- cards ---- */
-.grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-@media (max-width:1080px){ .grid{grid-template-columns:1fr;} }
-.card { position:relative; display:flex; flex-direction:column; gap:10px; background:var(--panel);
-  border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;
-  transition:border-color .12s ease, transform .12s ease; }
-.card:hover { border-color:var(--accent); }
-.card .go { position:absolute; right:16px; top:16px; color:var(--accent); font-size:12px; opacity:0; }
-.card:hover .go { opacity:1; }
-.crow { display:flex; align-items:center; gap:8px; }
-.name { font-size:15.5px; font-weight:600; letter-spacing:-0.01em; }
-.rank { color:var(--muted); font-size:12px; font-weight:500; }
-.risk { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:500;
-  border-radius:999px; padding:1px 8px; }
-.risk.low  { color:var(--good); background:color-mix(in srgb, var(--good) 10%, transparent); }
-.risk.med  { color:#9a6b00; background:color-mix(in srgb, #e0a800 15%, transparent); }
-.risk.high { color:var(--bad); background:color-mix(in srgb, var(--bad) 10%, transparent); }
-html[data-theme="dark"] .risk.med { color:#e0a800; }
-.who { color:var(--muted); font-size:12px; }
-.tags { display:flex; gap:6px; flex-wrap:wrap; }
-.tag { font-size:11px; color:var(--accent); background:var(--accent-soft);
-  border:1px solid color-mix(in srgb, var(--accent) 35%, transparent); padding:1px 8px; border-radius:999px; }
-.sparkwrap { position:relative; margin:2px 0; }
-.spark { display:block; width:100%; height:58px; }
-.tip { position:absolute; z-index:2; pointer-events:none; display:none;
-  background:var(--ink); color:var(--bg); border-radius:6px; padding:6px 9px;
-  font-size:11px; line-height:1.5; white-space:nowrap; transform:translate(-50%,-110%);
-  font-variant-numeric:tabular-nums; }
-.stats { display:flex; gap:22px; border-top:1px solid var(--line); padding-top:10px; }
-.stat .k { display:block; color:var(--muted); font-size:10.5px; text-transform:uppercase;
-  letter-spacing:.06em; margin-bottom:1px; }
-.stat .v { font-size:14.5px; font-weight:600; }
-.meta { display:flex; justify-content:space-between; color:var(--muted); font-size:11.5px; }
-.sep { color:var(--line2); }
-.empty { grid-column:1/-1; text-align:center; color:var(--muted); padding:40px 0;
-  background:var(--panel); border:1px dashed var(--line2); border-radius:var(--radius); }
-.foot { color:var(--muted); font-size:11.5px; margin-top:24px; }
 @media (max-width:900px){ .shell{grid-template-columns:1fr;} .sidebar{position:static; max-height:none;} }
 </style>
 </head>
@@ -154,6 +147,7 @@ html[data-theme="dark"] .risk.med { color:#e0a800; }
       <select id="sort" aria-label="Sort baskets">
         <option value="ret1m">1M return</option>
         <option value="alpha1m">Alpha vs Nifty 50</option>
+        <option value="sinceLaunch">Since-launch return</option>
         <option value="minInvest">Min investment</option>
         <option value="riskLow">Risk: low first</option>
         <option value="updated">Recently updated</option>
@@ -182,18 +176,23 @@ html[data-theme="dark"] .risk.med { color:#e0a800; }
 
 /* ================= formatting ================= */
 const fmtINR = (n) => "₹" + Math.round(n).toLocaleString("en-IN");
-const fmtPct = (v, signed) => {
-  const s = v >= 0 && signed ? "+" : "";
-  return s + v.toFixed(2) + "%";
-};
+const fmtPct = (v, signed) => (v >= 0 && signed ? "+" : "") + v.toFixed(1) + "%";
 const signedClass = (v) => (v >= 0 ? "up" : "down");
+const fmtDate = (d) => d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
+/* ================= time helpers ================= */
+function daysSince(dateStr) { return (new Date() - new Date(dateStr)) / 86400000; }
+function ago(dateStr) {
+  const d = daysSince(dateStr);
+  if (d < 45) return Math.max(1, Math.round(d / 7)) + "w ago";
+  if (d < 365) return Math.round(d / 30) + "M ago";
+  return Math.round(d / 365) + "Y ago";
+}
 
 /* ================= derived metrics ================= */
 function weeklyVol(b) {
   const r = [];
-  for (let i = 1; i < b.series.length; i += 1) {
-    r.push((b.series[i] - b.series[i - 1]) / b.series[i - 1]);
-  }
+  for (let i = 1; i < b.series.length; i += 1) r.push((b.series[i] - b.series[i - 1]) / b.series[i - 1]);
   const mean = r.reduce((a, x) => a + x, 0) / r.length;
   const varc = r.reduce((a, x) => a + (x - mean) * (x - mean), 0) / (r.length - 1);
   return Math.sqrt(varc);
@@ -208,62 +207,110 @@ function counts(b) {
   const etfs = b.stocks.filter((s) => s.kind === "etf").length;
   return { stocks: b.stocks.length - etfs, etfs: etfs };
 }
+function plural(n, one, many) { return n === 1 ? "1 " + one : n + " " + many; }
 function minInvestWholeShares(stocks) {
   let need = 0;
-  stocks.forEach((s) => {
-    const t = s.price / (s.weight / 100);
-    if (t > need) need = t;
-  });
+  stocks.forEach((s) => { const t = s.price / (s.weight / 100); if (t > need) need = t; });
   return Math.ceil(need);
 }
 
-/* ================= sidebar filters ================= */
-const filters = { risk: new Set(), tags: new Set(), ret: "any", amount: "any", launched: "any", updated: "any" };
-
-function facetCountRisk(key) {
-  return window.BASKETS.filter((b) => riskLabel(b).key === key).length;
+/* Chart window: launch date if younger than 1Y, else 1Y. Returns sliced arrays. */
+function windowFor(b) {
+  const age = daysSince(b.launched);
+  const weeks = age >= 365 ? b.series.length : Math.max(2, Math.ceil(age / 7) + 1);
+  const start = Math.max(0, b.series.length - weeks);
+  return {
+    series: b.series.slice(start),
+    nifty: b.nifty.slice(start),
+    dates: b.series.slice(start).map((_, i) => {
+      const d = new Date(b.updated);
+      d.setDate(d.getDate() - 7 * (b.series.slice(start).length - 1 - i));
+      return d;
+    })
+  };
 }
+function sinceLaunch(b) {
+  const w = windowFor(b);
+  const bs = (w.series[w.series.length - 1] / w.series[0] - 1) * 100;
+  const ns = (w.nifty[w.nifty.length - 1] / w.nifty[0] - 1) * 100;
+  return { basket: bs, nifty: ns, alpha: bs - ns };
+}
+
+/* ================= sparkline (percent-return tooltip) ================= */
+function sparkParts(b) {
+  const w = windowFor(b);
+  const W = 520, H = 84, PAD = 6;
+  const all = w.series.concat(w.nifty);
+  const min = Math.min.apply(null, all), max = Math.max.apply(null, all);
+  const span = (max - min) || 1;
+  const xAt = (i) => (i * (W - 2 * PAD)) / (w.series.length - 1) + PAD;
+  const yAt = (v) => H - PAD - ((v - min) / span) * (H - 2 * PAD);
+  const pct = (arr, i) => (arr[i] / arr[0] - 1) * 100;
+  const pts = (arr) => arr.map((v, i) => xAt(i).toFixed(1) + "," + yAt(v).toFixed(1)).join(" ");
+  const outperformed = w.series[w.series.length - 1] >= w.nifty[w.nifty.length - 1];
+  return {
+    W, xAt, w,
+    svg: '<svg class="spark" viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none">' +
+      '<line x1="' + PAD + '" y1="' + yAt(100) + '" x2="' + (W - PAD) + '" y2="' + yAt(100) +
+      '" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
+      '<polyline fill="none" stroke="#9aa4b1" stroke-width="1.4" stroke-dasharray="4 3" vector-effect="non-scaling-stroke" points="' + pts(w.nifty) + '"/>' +
+      '<polyline fill="none" stroke="' + (outperformed ? "var(--good)" : "var(--bad)") + '" stroke-width="2" vector-effect="non-scaling-stroke" points="' + pts(w.series) + '"/>' +
+      '<line class="crosshair" x1="0" x2="0" y1="' + PAD + '" y2="' + (H - PAD) + '" stroke="var(--line2)" stroke-dasharray="3 3" visibility="hidden"/>' +
+      "</svg><div class='tip'></div>"
+  };
+}
+function bindSpark(root, b) {
+  const svg = root.querySelector("svg");
+  const ch = root.querySelector(".crosshair");
+  const tip = root.querySelector(".tip");
+  const parts = sparkParts(b);
+  svg.addEventListener("mousemove", (e) => {
+    const rect = svg.getBoundingClientRect();
+    const frac = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    const j = Math.round(frac * (parts.w.series.length - 1));
+    ch.setAttribute("x1", parts.xAt(j));
+    ch.setAttribute("x2", parts.xAt(j));
+    ch.setAttribute("visibility", "visible");
+    tip.style.display = "block";
+    tip.style.left = (parts.xAt(j) / parts.W) * 100 + "%";
+    const bp = (parts.w.series[j] / parts.w.series[0] - 1) * 100;
+    const np = (parts.w.nifty[j] / parts.w.nifty[0] - 1) * 100;
+    tip.innerHTML = "<b>" + fmtDate(parts.w.dates[j]) + "</b><br>" +
+      "Basket " + fmtPct(bp) + " · Nifty " + fmtPct(np);
+  });
+  svg.addEventListener("mouseleave", () => {
+    ch.setAttribute("visibility", "hidden");
+    tip.style.display = "none";
+  });
+}
+
+/* ================= sidebar filters ================= */
+const filters = { risk: new Set(), ret: "any", amount: "any", launched: "any", updated: "any" };
+function facetCountRisk(key) { return window.BASKETS.filter((b) => riskLabel(b).key === key).length; }
 const RISKS = [["low","Low risk"],["med","Medium risk"],["high","High risk"]];
 const RET_CHIPS = [["any","Any"],["neg","Negative"],["pos","Positive"],["0to5","0–5%"],["gt5","Above 5%"]];
 const AMT_CHIPS = [["any","Any"],["lt50","Under ₹50,000"],["50to80","₹50–80k"],["gt80","Above ₹80,000"]];
 const LAUNCH_CHIPS = [["any","Any time"],["l90","Last 90 days"],["l180","Last 180 days"],["l365","Last year"]];
 const UPD_CHIPS = [["any","Any"],["w1","This week"],["m1","This month"]];
+const riskColor = { low: "var(--good)", med: "#9a6b00", high: "var(--bad)" };
 
 function sidebarHTML() {
-  const riskColor = { low: "var(--good)", med: "#9a6b00", high: "var(--bad)" };
-  const rows = (items, sel, group) => items.map(([v, label]) => {
-    const cnt = group === "risk" ? facetCountRisk(v) : "";
-    const labelHtml = group === "risk"
-      ? '<span style="color:' + riskColor[v] + ';font-weight:500">' + label + "</span>"
-      : "<span>" + label + "</span>";
-    return '<label class="frow"><input type="checkbox" data-kind="' + group + '" value="' + v + '"' +
-      (sel.has(v) ? " checked" : "") + ">" + labelHtml +
-      (cnt !== "" ? '<span class="cnt">' + cnt + "</span>" : "") + "</label>";
-  }).join("");
+  const rows = RISKS.map(([v, label]) =>
+    '<label class="frow"><input type="checkbox" data-kind="risk" value="' + v + '"' +
+    (filters.risk.has(v) ? " checked" : "") + '><span style="color:' + riskColor[v] + ';font-weight:500">' + label + "</span>" +
+    '<span class="cnt">' + facetCountRisk(v) + "</span></label>").join("");
   const chips = (items, group) => '<div class="fchips">' + items.map(([v, label]) =>
-    '<button type="button" class="chip' + (filters[group] === v ? " on" : "") + '" data-kind="' + group + '" data-val="' + v + '">' + label + "</button>"
-  ).join("") + "</div>";
+    '<button type="button" class="chip' + (filters[group] === v ? " on" : "") + '" data-kind="' + group + '" data-val="' + v + '">' + label + "</button>").join("") + "</div>";
   return '<div class="side-h"><b>Filters</b><button class="reset" id="reset">Reset</button></div>' +
-    '<div class="fgroup"><span class="flabel">Risk / volatility</span>' + rows(RISKS, filters.risk, "risk") + "</div>" +
-
+    '<div class="fgroup"><span class="flabel">Risk / volatility</span>' + rows + "</div>" +
     '<div class="fgroup"><span class="flabel">1M return</span>' + chips(RET_CHIPS, "ret") + "</div>" +
     '<div class="fgroup"><span class="flabel">Min investment</span>' + chips(AMT_CHIPS, "amount") + "</div>" +
     '<div class="fgroup"><span class="flabel">Launched</span>' + chips(LAUNCH_CHIPS, "launched") + "</div>" +
     '<div class="fgroup"><span class="flabel">Last updated</span>' + chips(UPD_CHIPS, "updated") + "</div>";
 }
 
-function daysSince(dateStr) {
-  return (new Date() - new Date(dateStr)) / 86400000;
-}
-function ago(dateStr) {
-  const d = daysSince(dateStr);
-  if (d < 45) return Math.max(1, Math.round(d / 7)) + "w ago";
-  if (d < 365) return Math.round(d / 30) + "M ago";
-  return (Math.round((d / 365) * 10) / 10) + "Y ago";
-}
 function passFilters(b) {
   if (filters.risk.size && !filters.risk.has(riskLabel(b).key)) return false;
-  if (filters.tags.size && !b.tags.some((t) => filters.tags.has(t))) return false;
   if (filters.ret === "neg" && b.ret1m >= 0) return false;
   if (filters.ret === "pos" && b.ret1m <= 0) return false;
   if (filters.ret === "0to5" && (b.ret1m <= 0 || b.ret1m > 5)) return false;
@@ -282,75 +329,37 @@ function passFilters(b) {
   return true;
 }
 
-/* ================= sparkline ================= */
-function sparklineParts(b) {
-  const W = 520, H = 84, PAD = 6;
-  const all = b.series.concat(b.nifty);
-  const min = Math.min.apply(null, all), max = Math.max.apply(null, all);
-  const span = (max - min) || 1;
-  const xAt = (i) => (i * (W - 2 * PAD)) / (b.series.length - 1) + PAD;
-  const yAt = (v) => H - PAD - ((v - min) / span) * (H - 2 * PAD);
-  const pts = (arr) => arr.map((v, i) => xAt(i).toFixed(1) + "," + yAt(v).toFixed(1)).join(" ");
-  const dates = b.series.map((_, i) => {
-    const d = new Date(b.updated);
-    d.setDate(d.getDate() - 7 * (b.series.length - 1 - i));
-    return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
-  });
-  return { W, H, PAD, xAt, dates,
-    svg: '<svg class="spark" viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none">' +
-      '<line x1="' + PAD + '" y1="' + yAt(100) + '" x2="' + (W - PAD) + '" y2="' + yAt(100) +
-      '" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
-      '<polyline fill="none" stroke="#9aa4b1" stroke-width="1.4" stroke-dasharray="4 3" vector-effect="non-scaling-stroke" points="' + pts(b.nifty) + '"/>' +
-      '<polyline fill="none" stroke="' + (b.series[b.series.length - 1] >= b.nifty[b.nifty.length - 1] ? "var(--good)" : "var(--bad)") + '" stroke-width="2" vector-effect="non-scaling-stroke" points="' + pts(b.series) + '"/>' +
-      '<line class="crosshair" x1="0" x2="0" y1="' + PAD + '" y2="' + (H - PAD) + '" stroke="var(--line2)" stroke-dasharray="3 3" visibility="hidden"/>' +
-      "</svg><div class='tip'></div>" };
-}
-function bindSpark(root, b) {
-  const svg = root.querySelector("svg");
-  const ch = root.querySelector(".crosshair");
-  const tip = root.querySelector(".tip");
-  const parts = sparklineParts(b);
-  svg.addEventListener("mousemove", (e) => {
-    const rect = svg.getBoundingClientRect();
-    const frac = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
-    const j = Math.round(frac * (b.series.length - 1));
-    ch.setAttribute("x1", parts.xAt(j));
-    ch.setAttribute("x2", parts.xAt(j));
-    ch.setAttribute("visibility", "visible");
-    tip.style.display = "block";
-    tip.style.left = (parts.xAt(j) / parts.W) * 100 + "%";
-    tip.innerHTML = "<b>" + parts.dates[j] + "</b><br>Basket " + b.series[j].toFixed(1) + " · Nifty " + b.nifty[j].toFixed(1);
-  });
-  svg.addEventListener("mouseleave", () => {
-    ch.setAttribute("visibility", "hidden");
-    tip.style.display = "none";
-  });
-}
-
 /* ================= card ================= */
 function cardHTML(b, position) {
   const risk = riskLabel(b);
+  const vol = (weeklyVol(b) * 100).toFixed(1);
   const c = counts(b);
-  const parts = sparklineParts(b);
+  const sl = sinceLaunch(b);
+  const parts = sparkParts(b);
   return '<div class="card" role="link" tabindex="0" data-open="' + b.id + '">' +
     '<span class="go">Quick view →</span>' +
-    '<div class="crow"><span class="rank">#' + position + '</span><span class="name">' + b.name + '</span>' +
-      '<span class="risk ' + risk.key + '">' + risk.text + "</span></div>" +
-    '<div class="crow"><span class="who">by ' + b.provider + "</span></div>" +
-    '<div class="tags">' + b.tags.map((t) => '<span class="tag">' + titleCase(t) + "</span>").join("") + "</div>" +
+    '<div class="crow">' +
+      '<span class="risk ' + risk.key + '" title="One-year weekly volatility ' + vol + '%">' + risk.text + "</span>" +
+      '<span class="rank">#' + position + "</span>" +
+    "</div>" +
+    '<div class="name">' + b.name + "</div>" +
+    '<div class="tags">' + b.tags.map((t) => '<span class="tag">' + t + "</span>").join("") + "</div>" +
+    '<div class="who">by ' + b.provider + "</div>" +
     '<div class="sparkwrap">' + parts.svg + "</div>" +
     '<div class="stats">' +
-      '<div class="stat"><span class="k">1M return</span><span class="v num ' + signedClass(b.ret1m) + '">' + fmtPct(b.ret1m, false) + "</span></div>" +
-      '<div class="stat"><span class="k">vs Nifty 50</span><span class="v num ' + signedClass(b.alpha1m) + '">' + fmtPct(b.alpha1m, true) + "</span></div>" +
-      '<div class="stat"><span class="k">Min investment</span><span class="v num" title="Whole shares only — no fractional buying">' + fmtINR(minInvestWholeShares(b.stocks)) + "</span></div>" +
+      '<div class="stat"><span class="k">1M return</span><span class="v num ' + signedClass(b.ret1m) + '">' + fmtPct(b.ret1m) + "</span></div>" +
+      '<div class="stat"><span class="k">1M vs Nifty</span><span class="v num ' + signedClass(b.alpha1m) + '">' + fmtPct(b.alpha1m, true) + "</span></div>" +
+      '<div class="stat"><span class="k">Since launch</span><span class="v num ' + signedClass(sl.basket) + '">' + fmtPct(sl.basket) + "</span></div>" +
+      '<div class="stat"><span class="k">Launch vs Nifty</span><span class="v num ' + signedClass(sl.alpha) + '">' + fmtPct(sl.alpha, true) + "</span></div>" +
     "</div>" +
-    '<div class="meta"><span>' + c.stocks + " stocks" + (c.etfs ? " · " + c.etfs + " ETFs" : "") +
-      ' <span class="sep">|</span> Launched ' + ago(b.launched) + "</span><span>Updated " + ago(b.updated) + "</span></div>" +
-    "</a>";
+    '<div class="meta"><span>' + plural(c.stocks, "stock", "stocks") +
+      (c.etfs ? " · " + plural(c.etfs, "ETF", "ETFs") : "") +
+      '</span><span><span title="Launched on ' + fmtDate(new Date(b.launched)) + '">Launched ' + ago(b.launched) + "</span>" +
+      ' <span class="sep">|</span> <span title="Updated on ' + fmtDate(new Date(b.updated)) + '">Updated ' + ago(b.updated) + "</span></span></div>" +
+    "</div>";
 }
 
-
-/* ================= slide-over: basket quick view ================= */
+/* ================= slide-over quick view ================= */
 const overlay = document.createElement("div");
 overlay.className = "overlay";
 overlay.innerHTML =
@@ -365,65 +374,53 @@ document.body.appendChild(overlay);
 function openQuick(b) {
   const risk = riskLabel(b);
   const c = counts(b);
+  const sl = sinceLaunch(b);
   const top = b.stocks.slice().sort((x, y) => y.weight - x.weight).slice(0, 5);
   document.getElementById("pbody").innerHTML =
-    '<div class="crow"><span class="rank">#' + b.rank + "</span>" +
-    '<span class="risk ' + risk.key + '">' + risk.text + "</span></div>" +
+    '<div class="crow"><span class="risk ' + risk.key + '">' + risk.text + "</span>" +
+    '<span class="rank">#' + b.rank + "</span></div>" +
     '<div class="name" style="font-size:18px">' + b.name + "</div>" +
     '<div class="who">by ' + b.provider + " · Launched " + ago(b.launched) + " · Updated " + ago(b.updated) + "</div>" +
-    '<div class="tags">' + b.tags.map((t) => titleCase(t)).map((t) => '<span class="tag">' + t + "</span>").join("") + "</div>" +
-    '<div class="sparkwrap">' + sparklineParts(b).svg + "</div>" +
+    '<div class="tags">' + b.tags.map((t) => '<span class="tag">' + t + "</span>").join("") + "</div>" +
+    '<div class="sparkwrap">' + sparkParts(b).svg + "</div>" +
     '<div class="stats" style="border-top:0;padding-top:0">' +
-    '<div class="stat"><span class="k">1M return</span><span class="v num ' + signedClass(b.ret1m) + '">' + fmtPct(b.ret1m, false) + "</span></div>" +
-    '<div class="stat"><span class="k">vs Nifty 50</span><span class="v num ' + signedClass(b.alpha1m) + '">' + fmtPct(b.alpha1m, true) + "</span></div>" +
-    '<div class="stat"><span class="k">Min investment</span><span class="v num">' + fmtINR(minInvestWholeShares(b.stocks)) + "</span></div>" +
+    '<div class="stat"><span class="k">1M return</span><span class="v num ' + signedClass(b.ret1m) + '">' + fmtPct(b.ret1m) + "</span></div>" +
+    '<div class="stat"><span class="k">1M vs Nifty</span><span class="v num ' + signedClass(b.alpha1m) + '">' + fmtPct(b.alpha1m, true) + "</span></div>" +
+    '<div class="stat"><span class="k">Since launch</span><span class="v num ' + signedClass(sl.basket) + '">' + fmtPct(sl.basket) + "</span></div>" +
+    '<div class="stat"><span class="k">Launch vs Nifty</span><span class="v num ' + signedClass(sl.alpha) + '">' + fmtPct(sl.alpha, true) + "</span></div>" +
     "</div>" +
-    '<p class="plabel">The rule</p><div class="rulebox">' + b.idea + "</div>" +
+    '<p class="plabel">The rule, as the system runs it</p><div class="rulebox">' + b.rule + "</div>" +
     '<p class="plabel">Top holdings</p><div id="phold"></div>';
   document.getElementById("phold").innerHTML = top.map((s) => {
     const kind = s.kind === "etf" ? " · ETF" : "";
-    return '<div class="hrow"><span><b>' + s.symbol + "</b> · " + s.name + kind + "</span><span class="num">" + s.weight + "%</span></div>";
+    return '<div class="hrow"><span><b>' + s.symbol + "</b> · " + s.name + kind + "</span><span class='num'>" + s.weight + "%</span></div>";
   }).join("");
   bindSpark(document.getElementById("pbody"), b);
   document.getElementById("pfull").setAttribute("href", "/basket/" + b.id);
   overlay.classList.add("open");
 }
-function titleCase(t) {
-  return t.split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-}
-function closeQuick() {
-  overlay.classList.remove("open");
-}
+function closeQuick() { overlay.classList.remove("open"); }
 overlay.querySelector(".scrim").addEventListener("click", closeQuick);
 overlay.querySelector("#pclose").addEventListener("click", closeQuick);
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeQuick();
-});
-document.getElementById("grid").addEventListener("click", (e) => {
-  const card = e.target.closest("[data-open]");
-  if (!card) return;
-  const b = window.BASKETS.find((x) => x.id === card.getAttribute("data-open"));
-  if (b) openQuick(b);
-});
-document.getElementById("grid").addEventListener("keydown", (e) => {
-  if (e.key !== "Enter") return;
-  const card = e.target.closest("[data-open]");
-  if (!card) return;
-  const b = window.BASKETS.find((x) => x.id === card.getAttribute("data-open"));
-  if (b) openQuick(b);
-});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeQuick(); });
 
 /* ================= render ================= */
-function render() {
+const state = { sort: "ret1m" };
+function currentBaskets() {
   let list = window.BASKETS.filter(passFilters);
-  const key = document.getElementById("sort").value;
+  const key = state.sort;
   list = list.slice().sort((a, b) => {
     if (key === "minInvest") return minInvestWholeShares(a.stocks) - minInvestWholeShares(b.stocks);
     if (key === "riskLow") return weeklyVol(a) - weeklyVol(b);
     if (key === "updated") return new Date(b.updated) - new Date(a.updated);
     if (key === "launched") return new Date(b.launched) - new Date(a.launched);
+    if (key === "sinceLaunch") return sinceLaunch(b).basket - sinceLaunch(a).basket;
     return b[key] - a[key];
   });
+  return list;
+}
+function render() {
+  const list = currentBaskets();
   const grid = document.getElementById("grid");
   grid.innerHTML = list.length
     ? list.map((b, i) => cardHTML(b, i + 1)).join("")
@@ -440,13 +437,12 @@ document.getElementById("sidebar").innerHTML = sidebarHTML();
 document.getElementById("sidebar").addEventListener("change", (e) => {
   const kind = e.target.getAttribute("data-kind");
   if (!kind) return;
-  const set = filters[kind];
-  if (e.target.checked) set.add(e.target.value); else set.delete(e.target.value);
+  if (e.target.checked) filters[kind].add(e.target.value); else filters[kind].delete(e.target.value);
   render();
 });
 document.getElementById("sidebar").addEventListener("click", (e) => {
   if (e.target.id === "reset") {
-    filters.risk.clear(); filters.tags.clear();
+    filters.risk.clear();
     filters.ret = "any"; filters.amount = "any"; filters.launched = "any"; filters.updated = "any";
     document.getElementById("sidebar").innerHTML = sidebarHTML();
     render();
@@ -458,7 +454,20 @@ document.getElementById("sidebar").addEventListener("click", (e) => {
   document.getElementById("sidebar").innerHTML = sidebarHTML();
   render();
 });
-document.getElementById("sort").addEventListener("change", render);
+document.getElementById("sort").addEventListener("change", (e) => { state.sort = e.target.value; render(); });
+document.getElementById("grid").addEventListener("click", (e) => {
+  const card = e.target.closest("[data-open]");
+  if (!card) return;
+  const b = window.BASKETS.find((x) => x.id === card.getAttribute("data-open"));
+  if (b) openQuick(b);
+});
+document.getElementById("grid").addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  const card = e.target.closest("[data-open]");
+  if (!card) return;
+  const b = window.BASKETS.find((x) => x.id === card.getAttribute("data-open"));
+  if (b) openQuick(b);
+});
 render();
 </script>
 </body>
