@@ -135,10 +135,9 @@ first thing to plan with the human.
 
 ## 9. NEXT STEP (keep this section tiny, complete, and always current)
 
-1. python -m woong.ingest.broker_harvest --help -- confirm flags
-2. Run full OHLCV backfill into prices_daily (W2)
-3. Verify row count in prices_daily via DuckDB
-4. Then: condition-window UI upgrade (plan approved)
+TODAY: Fix other_window bug (GH issue #6) — Close > SMA 200D must work without error.
+THIS WEEK: Sentence/token condition builder (GH issue #7).
+NEXT WEEK: Populate monthly_returns + seasonal conditions.
 ---
 
 *Written by the previous agent session. Human: Deevanshu. Repo:
